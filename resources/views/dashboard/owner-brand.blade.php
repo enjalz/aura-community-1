@@ -67,16 +67,19 @@
                         </tr>
                     </thead>
                     <tbody>
-                        @foreach ($laporan as $baris)
-                            <tr>
-                                <td>{{ $baris['campaign']->namaCampaign }}</td>
-                                <td>{{ $baris['campaign']->tanggalSelesai->format('d/m/Y') }}</td>
-                                <td>{{ number_format($baris['ringkasan']['views'], 0, ',', '.') }}</td>
-                                <td>{{ number_format($baris['ringkasan']['likes'], 0, ',', '.') }}</td>
-                                <td>{{ number_format($baris['ringkasan']['komentar'], 0, ',', '.') }}</td>
-                                <td class="kolom-aksi"><a class="tautan" href="{{ route('owner.laporan', ['pilih' => $baris['campaign']->idCampaign]) }}">Lihat Laporan</a></td>
-                            </tr>
-                        @endforeach
+                                            @foreach ($laporan as $baris)
+                        <tr>
+                            <td>{{ $baris['campaign']->namaCampaign }}</td>
+                            <td>{{ $baris['campaign']->tanggalSelesai->format('d/m/Y') }}</td>
+                            <td>{{ number_format($baris['ringkasan']['views'], 0, ',', '.') }}</td>
+                            <td>{{ number_format($baris['ringkasan']['likes'], 0, ',', '.') }}</td>
+                            <td>{{ number_format($baris['ringkasan']['komentar'], 0, ',', '.') }}</td>
+                            {{-- Tautan harus di dalam <td>, kalau tidak browser memindahkannya ke luar tabel --}}
+                            <td class="kolom-aksi">
+                                <a class="tautan" href="{{ route('owner.laporan.detail', $baris['campaign']) }}">Lihat Laporan</a>
+                            </td>
+                        </tr>
+                    @endforeach
                     </tbody>
                 </table>
             </div>

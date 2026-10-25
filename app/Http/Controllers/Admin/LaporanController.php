@@ -12,33 +12,51 @@ use Illuminate\Http\Request;
 use Illuminate\Validation\Rule;
 use Illuminate\View\View;
 
-// Use case Laporan Hasil Campaign untuk Admin (Tabel 25, wireframe Gambar 76)
+// Use case Laporan Hasil Campaign untuk Admin (Tabel 25).
+// Wireframe Gambar 76 (daftar) dan Gambar 77 (detail).
 class LaporanController extends Controller
 {
     private const PER_HALAMAN = 10;
 
+    // Daftar campaign selesai (Gambar 76). Detail dibuka lewat tombol Pilih.
     public function index(Request $request, RekapCampaign $rekap): View
     {
-        $cari = trim((string) $request->query('cari'));
+        $cari   = trim((string) $request->query('cari'));
         $status = $request->query('status');
 
-        $query = $this->campaignSelesai()
+        $daftar = $this->campaignSelesai()
             ->when($cari !== '', fn ($q) => $q->where('namaCampaign', 'like', '%' . addcslashes($cari, '%_\\') . '%'))
             ->when($status === 'belum', fn ($q) => $q->doesntHave('laporan'))
             ->when(in_array($status, ['draft', 'final'], true), fn ($q) => $q->whereHas('laporan', fn ($l) => $l->where('statusLaporan', $status)))
-            ->orderByDesc('tanggalSelesai');
+            ->orderByDesc('tanggalSelesai')
+            ->paginate(self::PER_HALAMAN)
+            ->withQueryString();
 
-        $daftar = (clone $query)->paginate(self::PER_HALAMAN)->withQueryString();
-
-        $terpilih = $request->integer('pilih') ? (clone $query)->find($request->integer('pilih')) : null;
-        $terpilih ??= $daftar->first();
+        // Total views per campaign untuk kolom "Total Views", dikunci dengan idCampaign
+        $ringkasan = $daftar->getCollection()
+            ->mapWithKeys(fn (Campaign $campaign) => [$campaign->idCampaign => $rekap->ringkasan($campaign)]);
 
         return view('admin.laporan', [
-            'daftar' => $daftar,
-            'terpilih' => $terpilih,
-            'ringkasan' => $terpilih ? $rekap->ringkasan($terpilih) : null,
-            'rincian' => $terpilih ? $rekap->rincian($terpilih) : null,
-            'filter' => compact('cari', 'status'),
+            'daftar'    => $daftar,
+            'ringkasan' => $ringkasan,
+            'filter'    => compact('cari', 'status'),
+        ]);
+    }
+
+    // Detail laporan satu campaign (Gambar 77, Tabel 25 langkah 3-4)
+    public function detail(Campaign $campaign, RekapCampaign $rekap): View
+    {
+        // Entry condition Tabel 25: laporan hanya untuk campaign yang sudah selesai
+        abort_unless($campaign->statusCampaign === 'selesai', 404);
+
+        $campaign->load(['laporan', 'ketentuanPlatform']);
+
+        return view('admin.laporan-detail', [
+            'campaign'  => $campaign,
+            'laporan'   => $campaign->laporan,
+            'ringkasan' => $rekap->ringkasan($campaign),
+            'performa'  => $rekap->performa($campaign), // ER, view rate, label performa (Bab 2.1.4)
+            'rincian'   => $rekap->rincian($campaign),
         ]);
     }
 
@@ -64,7 +82,7 @@ class LaporanController extends Controller
             ],
             [
                 'catatanEvaluasi.required' => 'Tulis catatan evaluasi sebelum laporan dipublikasikan.',
-                'catatanEvaluasi.max' => 'Catatan evaluasi maksimal 5000 karakter.',
+                'catatanEvaluasi.max'      => 'Catatan evaluasi maksimal 5000 karakter.',
             ]
         );
 
@@ -72,10 +90,10 @@ class LaporanController extends Controller
         LaporanCampaign::updateOrCreate(
             ['idCampaign' => $campaign->idCampaign],
             [
-                'idPengguna' => $request->user()->idPengguna,
-                'catatanEvaluasi' => $data['catatanEvaluasi'] ?? '',   // kolom NOT NULL, jadi diisi teks kosong kalau belum ada
-                'tanggalSelesaiCampaign' => now()->toDateString(),    // Tabel 36: tanggal finalisasi laporan
-                'statusLaporan' => $data['aksi'],
+                'idPengguna'             => $request->user()->idPengguna,
+                'catatanEvaluasi'        => $data['catatanEvaluasi'] ?? '', // kolom NOT NULL, jadi diisi teks kosong kalau belum ada
+                'tanggalSelesaiCampaign' => now()->toDateString(),           // Tabel 36: tanggal finalisasi laporan
+                'statusLaporan'          => $data['aksi'],
             ]
         );
 
@@ -83,7 +101,8 @@ class LaporanController extends Controller
             ? 'Laporan difinalisasi dan dipublikasikan. Owner Brand terkait sekarang dapat melihatnya.'
             : 'Draft laporan disimpan.';
 
-        return redirect()->route('admin.laporan', ['pilih' => $campaign->idCampaign])->with('sukses', $pesan);
+        // Kembali ke halaman detail laporan yang sama
+        return redirect()->route('admin.laporan.detail', $campaign)->with('sukses', $pesan);
     }
 
     // Campaign selesai, beserta laporannya dan jumlah influencer yang diterima

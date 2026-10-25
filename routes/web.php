@@ -129,6 +129,7 @@ Route::middleware('auth')->group(function () {
 
         // Laporan Hasil Campaign (Tabel 25)
         Route::get('/laporan', [AdminLaporanController::class, 'index'])->name('laporan');
+        Route::get('/laporan/{campaign}', [AdminLaporanController::class, 'detail'])->name('laporan.detail');
         Route::post('/laporan/{campaign}', [AdminLaporanController::class, 'simpan'])->name('laporan.simpan');
 
         // Riwayat Campaign (Tabel 26)
@@ -147,6 +148,8 @@ Route::middleware('auth')->group(function () {
         Route::get('/riwayat', [OwnerRiwayatController::class, 'index'])->name('riwayat');        // Tabel 26
         Route::get('/profil', [OwnerProfilController::class, 'edit'])->name('profil');            // Tabel 7
         Route::put('/profil', [OwnerProfilController::class, 'update'])->name('profil.perbarui');
+        Route::get('/laporan', [OwnerLaporanController::class, 'index'])->name('laporan');        // Tabel 25
+        Route::get('/laporan/{campaign}', [OwnerLaporanController::class, 'detail'])->name('laporan.detail'); // Tabel 25 langkah 6-7
     }); // tutup grup owner brand
 
     // ===== INFLUENCER =====

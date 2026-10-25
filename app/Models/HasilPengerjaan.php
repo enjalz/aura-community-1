@@ -2,6 +2,7 @@
 
 namespace App\Models;
 
+use App\Services\RekapCampaign;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 
@@ -11,10 +12,12 @@ class HasilPengerjaan extends ModelAura
     protected $table = 'HasilPengerjaan';
     protected $primaryKey = 'idHasil';
 
+    // $fillable = daftar kolom yang BOLEH diisi lewat create()/update().
+    // Kolom yang tidak ada di sini akan diabaikan Laravel tanpa error.
     protected $fillable = [
         'idPendaftaran', 'idAkun', 'draftKonten', 'tanggalPengirimanDraft',
         'linkKonten', 'fileInsight', 'jumlahViews', 'jumlahLikes', 'jumlahKomentar',
-        'jumlahPengikut', 
+        'jumlahPengikut', // pengikut akun saat insight dikirim (Tabel 38)
         'tanggalPengirimanInsight', 'statusDraft', 'statusInsight',
     ];
 
@@ -39,5 +42,17 @@ class HasilPengerjaan extends ModelAura
     public function feedback(): HasMany
     {
         return $this->hasMany(Feedback::class, 'idHasil');
+    }
+
+    // ER satu konten (Bab 2.1.4), memakai rumus yang sama dengan laporan (RekapCampaign::hitungEr)
+    public function engagementRate(): ?float
+    {
+        return RekapCampaign::hitungEr($this->jumlahLikes, $this->jumlahKomentar, $this->jumlahViews);
+    }
+
+    // View rate satu konten. Null kalau data pengikut belum ada.
+    public function viewRate(): ?float
+    {
+        return RekapCampaign::hitungViewRate($this->jumlahViews, $this->jumlahPengikut);
     }
 }

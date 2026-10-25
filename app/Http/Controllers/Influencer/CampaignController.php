@@ -10,6 +10,7 @@ use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Str;
 use Illuminate\Validation\Rule;
 use Illuminate\View\View;
 
@@ -135,6 +136,28 @@ class CampaignController extends Controller
         if ($campaign->kategoriInfluencer !== $influencer->kategori) {
             return "Campaign ini khusus untuk influencer kategori {$campaign->kategoriInfluencer}.";
         }
+
+        // ===== TAMBAHAN: kepemilikan akun platform =====
+        // Influencer wajib punya akun untuk SEMUA platform di ketentuan campaign (Tabel 17: "memenuhi ketentuan campaign").
+        // Tanpa pengecekan ini, influencer bisa diterima tetapi tidak bisa mengirim draft untuk platform yang tidak dimiliki,
+        // dan pembayaran tidak bisa diproses karena setiap platform di ketentuan harus punya hasil pengerjaan.
+        $platformDibutuhkan = $campaign->ketentuanPlatform->pluck('platform')->unique();
+
+        // Platform milik influencer, dijadikan huruf kecil supaya "TikTok" dan "tiktok" dianggap sama
+        $platformSaya = $influencer->akunSosmed()->pluck('platform')->map(fn ($platform) => Str::lower($platform));
+
+        // Platform yang dibutuhkan campaign tetapi belum dimiliki influencer
+        $belumPunya = $platformDibutuhkan
+            ->reject(fn ($platform) => $platformSaya->contains(Str::lower($platform)))
+            ->values();
+
+        if ($belumPunya->isNotEmpty()) {
+            // join(', ', ' dan ') menghasilkan contoh: "Instagram" atau "Instagram dan TikTok"
+            $daftarPlatform = $belumPunya->join(', ', ' dan ');
+
+            return "Anda belum memiliki akun {$daftarPlatform}. Tambahkan akun {$daftarPlatform} di menu Profil untuk mengikuti campaign ini.";
+        }
+        // ===== AKHIR TAMBAHAN =====
 
         $jumlahDiterima = $campaign->pendaftaran()->where('statusPendaftaran', 'diterima')->count();
 

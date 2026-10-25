@@ -6,19 +6,24 @@ use App\Models\Campaign;
 use App\Models\HasilPengerjaan;
 use Illuminate\Contracts\Pagination\LengthAwarePaginator;
 use Illuminate\Database\Eloquent\Builder;
+use Illuminate\Support\Collection;
 
 // Menghitung statistik laporan campaign (Tabel 25: "sistem mengakumulasi data views, likes,
 // dan komentar dari seluruh influencer yang selesai").
 // Hanya hasil pengerjaan yang insight-nya sudah DISETUJUI Admin yang dihitung.
 // Dipakai oleh laporan Admin, laporan Owner Brand, dan dashboard.
+// Rumus engagement rate dan view rate mengikuti Bab 2.1.4.
 class RekapCampaign
 {
-    // Rekapitulasi: jumlah influencer selesai, total views, likes, dan komentar
+    // Rekapitulasi: jumlah influencer selesai, jumlah konten, total views, likes, dan komentar.
+    // Kunci lama (influencer, views, likes, komentar) tidak diubah supaya dashboard dan
+    // komponen kartu-statistik tetap berjalan. 'konten' adalah tambahan.
     public function ringkasan(Campaign $campaign): array
     {
         $total = $this->hasilDisetujui($campaign)
-            ->toBase()   // hasil berupa angka biasa, bukan model
+            ->toBase()
             ->selectRaw('COUNT(DISTINCT HasilPengerjaan.idPendaftaran) AS influencer')
+            ->selectRaw('COUNT(*) AS konten')
             ->selectRaw('COALESCE(SUM(jumlahViews), 0) AS views')
             ->selectRaw('COALESCE(SUM(jumlahLikes), 0) AS likes')
             ->selectRaw('COALESCE(SUM(jumlahKomentar), 0) AS komentar')
@@ -26,14 +31,14 @@ class RekapCampaign
 
         return [
             'influencer' => (int) $total->influencer,
-            'views' => (int) $total->views,
-            'likes' => (int) $total->likes,
-            'komentar' => (int) $total->komentar,
+            'konten'     => (int) $total->konten,
+            'views'      => (int) $total->views,
+            'likes'      => (int) $total->likes,
+            'komentar'   => (int) $total->komentar,
         ];
     }
 
-    // Rincian per influencer (wireframe Gambar 76: "Rincian per Influencer"), views terbanyak di atas.
-    // Nama halaman paginasinya dibedakan ("halaman-rincian") supaya tidak bentrok dengan paginasi daftar campaign.
+    // Rincian per konten (tabel "Rincian Konten"), views terbanyak di atas.
     public function rincian(Campaign $campaign, int $perHalaman = 10): LengthAwarePaginator
     {
         return $this->hasilDisetujui($campaign)
@@ -41,6 +46,89 @@ class RekapCampaign
             ->orderByDesc('jumlahViews')
             ->paginate($perHalaman, ['*'], 'halaman-rincian')
             ->withQueryString();
+    }
+
+    // Performa per influencer dan ringkasan engagement satu campaign (Bab 2.1.4, Tabel 25 langkah 3).
+    public function performa(Campaign $campaign): array
+    {
+        $semuaHasil = $this->hasilDisetujui($campaign)
+            ->with(['pendaftaran.influencer.pengguna', 'akunSosmed'])
+            ->get();
+
+        // Satu pendaftaran = satu influencer. ER dihitung dari gabungan seluruh kontennya.
+        $perInfluencer = $semuaHasil
+            ->groupBy('idPendaftaran')
+            ->map(function (Collection $kontenInfluencer) {
+                $views    = (int) $kontenInfluencer->sum('jumlahViews');
+                $likes    = (int) $kontenInfluencer->sum('jumlahLikes');
+                $komentar = (int) $kontenInfluencer->sum('jumlahKomentar');
+                $pendaftaran = $kontenInfluencer->first()->pendaftaran;
+
+                return (object) [
+                    'pendaftaran'  => $pendaftaran,
+                    'nama'         => $pendaftaran->influencer->pengguna->nama,
+                    'jumlahKonten' => $kontenInfluencer->count(),
+                    'views'        => $views,
+                    'likes'        => $likes,
+                    'komentar'     => $komentar,
+                    'er'           => self::hitungEr($likes, $komentar, $views),
+                    'label'        => null,
+                ];
+            })
+            ->values();
+
+        // Rata-rata ER = (ER1 + ... + ERn) / n
+        $daftarEr   = $perInfluencer->pluck('er')->filter(fn ($er) => $er !== null);
+        $rataRataEr = $daftarEr->isNotEmpty() ? round($daftarEr->avg(), 2) : null;
+
+        // Label: sama dengan atau di atas rata-rata = di_atas, selain itu di_bawah
+        $perInfluencer = $perInfluencer
+            ->each(function (object $baris) use ($rataRataEr) {
+                if ($baris->er !== null && $rataRataEr !== null) {
+                    $baris->label = $baris->er >= $rataRataEr ? 'di_atas' : 'di_bawah';
+                }
+            })
+            ->sortByDesc(fn (object $baris) => $baris->er ?? -1)
+            ->values();
+
+        $erKeseluruhan = self::hitungEr(
+            (int) $semuaHasil->sum('jumlahLikes'),
+            (int) $semuaHasil->sum('jumlahKomentar'),
+            (int) $semuaHasil->sum('jumlahViews'),
+        );
+
+        $daftarViewRate = $semuaHasil
+            ->map(fn (HasilPengerjaan $hasil) => $hasil->viewRate())
+            ->filter(fn ($nilai) => $nilai !== null);
+
+        return [
+            'perInfluencer'    => $perInfluencer,
+            'rataRataEr'       => $rataRataEr,
+            'erKeseluruhan'    => $erKeseluruhan,
+            'rataRataViewRate' => $daftarViewRate->isNotEmpty() ? round($daftarViewRate->avg(), 2) : null,
+            'diAtas'           => $perInfluencer->where('label', 'di_atas')->count(),
+            'diBawah'          => $perInfluencer->where('label', 'di_bawah')->count(),
+        ];
+    }
+
+    // RUMUS 1: ER = (Likes + Komentar) / Views x 100%. Null kalau views kosong atau 0.
+    public static function hitungEr(?int $likes, ?int $komentar, ?int $views): ?float
+    {
+        if (! $views) {
+            return null;
+        }
+
+        return round((($likes ?? 0) + ($komentar ?? 0)) / $views * 100, 2);
+    }
+
+    // RUMUS 2: View Rate = Views / Pengikut x 100%. Null kalau data pengikut belum ada atau 0.
+    public static function hitungViewRate(?int $views, ?int $pengikut): ?float
+    {
+        if (! $pengikut || $views === null) {
+            return null;
+        }
+
+        return round($views / $pengikut * 100, 2);
     }
 
     private function hasilDisetujui(Campaign $campaign): Builder

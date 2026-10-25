@@ -3,11 +3,13 @@
 namespace App\Http\Controllers\OwnerBrand;
 
 use App\Http\Controllers\Controller;
+use App\Models\Campaign;
 use App\Services\RekapCampaign;
 use Illuminate\Http\Request;
 use Illuminate\View\View;
 
-// Use case Laporan Hasil Campaign untuk Owner Brand (Tabel 25 langkah 6-7, wireframe Gambar 89).
+// Use case Laporan Hasil Campaign untuk Owner Brand (Tabel 25 langkah 6-7).
+// Wireframe Gambar 90 (daftar) dan Gambar 91 (detail).
 // Hanya laporan FINAL dari campaign yang diberi akses (AksesCampaign).
 class LaporanController extends Controller
 {
@@ -17,24 +19,43 @@ class LaporanController extends Controller
     {
         $cari = trim((string) $request->query('cari'));
 
-        $query = $request->user()->ownerBrand->campaign()
+        $daftar = $request->user()->ownerBrand->campaign()
             ->whereHas('laporan', fn ($q) => $q->where('statusLaporan', 'final'))
             ->with('laporan')
             ->withCount(['pendaftaran as jumlahInfluencer' => fn ($q) => $q->where('statusPendaftaran', 'diterima')])
             ->when($cari !== '', fn ($q) => $q->where('namaCampaign', 'like', '%' . addcslashes($cari, '%_\\') . '%'))
-            ->orderByDesc('tanggalSelesai');
+            ->orderByDesc('tanggalSelesai')
+            ->paginate(self::PER_HALAMAN)
+            ->withQueryString();
 
-        $daftar = (clone $query)->paginate(self::PER_HALAMAN)->withQueryString();
-
-        // Campaign tanpa akses atau laporannya belum final tidak bisa dibuka, walaupun ID-nya diketik di URL
-        $terpilih = $request->integer('pilih') ? (clone $query)->find($request->integer('pilih')) : null;
-        $terpilih ??= $daftar->first();
+        $ringkasan = $daftar->getCollection()
+            ->mapWithKeys(fn (Campaign $campaign) => [$campaign->idCampaign => $rekap->ringkasan($campaign)]);
 
         return view('owner-brand.laporan', [
-            'daftar' => $daftar,
-            'terpilih' => $terpilih,
-            'ringkasan' => $terpilih ? $rekap->ringkasan($terpilih) : null,
-            'cari' => $cari,
+            'daftar'    => $daftar,
+            'ringkasan' => $ringkasan,
+            'cari'      => $cari,
+        ]);
+    }
+
+    public function detail(Request $request, Campaign $campaign, RekapCampaign $rekap): View
+    {
+        // Keamanan: campaign dicari ULANG lewat relasi milik owner brand yang sedang login.
+        // Jadi campaign tanpa akses, atau laporannya belum final, tidak bisa dibuka
+        // walaupun ID-nya diketik langsung di URL (hasilnya 404).
+        $terpilih = $request->user()->ownerBrand->campaign()
+            ->whereHas('laporan', fn ($q) => $q->where('statusLaporan', 'final'))
+            ->with(['laporan', 'ketentuanPlatform'])
+            ->find($campaign->idCampaign);
+
+        abort_unless($terpilih, 404);
+
+        return view('owner-brand.laporan-detail', [
+            'campaign'  => $terpilih,
+            'laporan'   => $terpilih->laporan,
+            'ringkasan' => $rekap->ringkasan($terpilih),
+            'performa'  => $rekap->performa($terpilih),
+            'rincian'   => $rekap->rincian($terpilih),
         ]);
     }
 }

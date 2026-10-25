@@ -1,4 +1,4 @@
-{{-- Laporan Hasil Campaign untuk Owner Brand (wireframe Gambar 89, Tabel 25 langkah 6-7) --}}
+{{-- Daftar Laporan Hasil Campaign untuk Owner Brand (wireframe Gambar 90, Tabel 25 langkah 6) --}}
 @extends('layouts.dashboard')
 
 @section('title', 'Laporan Hasil Campaign - Aura Community')
@@ -26,17 +26,19 @@
                         <th scope="col">Nama Campaign</th>
                         <th scope="col">Tanggal Selesai</th>
                         <th scope="col">Jumlah Influencer</th>
+                        <th scope="col">Total Views</th>
                         <th scope="col" class="kolom-aksi">Aksi</th>
                     </tr>
                 </thead>
                 <tbody>
                     @foreach ($daftar as $campaign)
-                        <tr @class(['is-terpilih' => $terpilih?->is($campaign)])>
+                        <tr>
                             <td>{{ $campaign->namaCampaign }}</td>
                             <td>{{ $campaign->tanggalSelesai->format('d/m/Y') }}</td>
                             <td>{{ $campaign->jumlahInfluencer }}</td>
+                            <td>{{ number_format($ringkasan[$campaign->idCampaign]['views'], 0, ',', '.') }}</td>
                             <td class="kolom-aksi">
-                                <a class="tautan" href="{{ request()->fullUrlWithQuery(['pilih' => $campaign->idCampaign]) }}">Pilih</a>
+                                <a class="tautan" href="{{ route('owner.laporan.detail', $campaign) }}">Pilih</a>
                             </td>
                         </tr>
                     @endforeach
@@ -45,20 +47,5 @@
         </div>
 
         {{ $daftar->links('partials.paginasi', ['label' => 'laporan']) }}
-    @endif
-
-    @if ($terpilih)
-        <section class="panel-laporan">
-            <div class="kepala-langkah">
-                <h2 class="judul-panel mb-0">Laporan: {{ $terpilih->namaCampaign }}</h2>
-                <span class="teks-redup">Selesai {{ $terpilih->tanggalSelesai->format('d/m/Y') }}</span>
-            </div>
-
-            <p class="label-grup">Ringkasan Statistik</p>
-            <x-kartu-statistik :ringkasan="$ringkasan" />
-
-            <p class="label-grup">Catatan Evaluasi</p>
-            <div class="kotak-catatan teks-panjang">{{ $terpilih->laporan->catatanEvaluasi }}</div>
-        </section>
     @endif
 @endsection
