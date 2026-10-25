@@ -6,10 +6,12 @@ use App\Http\Controllers\Controller;
 use App\Models\Campaign;
 use App\Models\Feedback;
 use App\Models\HasilPengerjaan;
+use App\Models\AkunSosmed;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Illuminate\View\View;
+
 
 // Use case Memeriksa Insight Campaign (Tabel 23). Wireframe Gambar 74.
 class VerifikasiInsightController extends Controller
@@ -46,15 +48,34 @@ class VerifikasiInsightController extends Controller
     // Tabel 23 langkah 6-7: insight sesuai bukti, status menjadi disetujui final
     public function setujui(HasilPengerjaan $hasil): RedirectResponse
     {
-        $jumlahBerubah = HasilPengerjaan::whereKey($hasil->idHasil)
-            ->where('statusInsight', 'menunggu')
-            ->update(['statusInsight' => 'disetujui']);
+        // DB::transaction: dua perubahan di bawah harus berhasil bersama.
+        // Kalau salah satu gagal, keduanya dibatalkan.
+        $berhasil = DB::transaction(function () use ($hasil) {
+            // Update bersyarat: hanya berubah kalau statusnya masih 'menunggu'.
+            // Ini mencegah proses dobel (klik ganda atau dua tab).
+            $jumlahBerubah = HasilPengerjaan::whereKey($hasil->idHasil)
+                ->where('statusInsight', 'menunggu')
+                ->update(['statusInsight' => 'disetujui']);
 
-        if ($jumlahBerubah === 0) {
+            if ($jumlahBerubah === 0) {
+                return false;
+            }
+
+            // Perbarui jumlah pengikut di profil (tabel akunsosmed) memakai akun yang dipakai konten ini.
+            // Dicek dulu tidak kosong, karena data lama bisa saja belum punya jumlahPengikut.
+            if ($hasil->jumlahPengikut !== null) {
+                AkunSosmed::whereKey($hasil->idAkun)
+                    ->update(['jumlahPengikut' => $hasil->jumlahPengikut]);
+            }
+
+            return true;
+        });
+
+        if (! $berhasil) {
             return back()->with('gagal', 'Insight ini sudah diperiksa sebelumnya.');
         }
 
-        return back()->with('sukses', 'Insight disetujui. Pengerjaan ini siap diproses ke pembayaran.');
+        return back()->with('sukses', 'Insight disetujui dan jumlah pengikut di profil influencer diperbarui. Pengerjaan ini siap diproses ke pembayaran.');
     }
 
     // Tabel 23 alternative scenario: angka tidak sesuai bukti, insight ditolak dengan alasan

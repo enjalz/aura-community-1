@@ -95,6 +95,7 @@
                         <div class="kotak-angka"><span>Views</span><strong>{{ number_format((int) $terpilih->jumlahViews, 0, ',', '.') }}</strong></div>
                         <div class="kotak-angka"><span>Likes</span><strong>{{ number_format((int) $terpilih->jumlahLikes, 0, ',', '.') }}</strong></div>
                         <div class="kotak-angka"><span>Komentar</span><strong>{{ number_format((int) $terpilih->jumlahKomentar, 0, ',', '.') }}</strong></div>
+                        <div class="kotak-angka"><span>Pengikut</span><strong>{{ $terpilih->jumlahPengikut !== null ? number_format($terpilih->jumlahPengikut, 0, ',', '.') : '-' }}</strong></div>
                     </div>
 
                     @if ($terpilih->statusInsight === 'menunggu')
@@ -111,14 +112,18 @@
                             </div>
                         </form>
 
-                        <div class="panel-aksi">
+                        <div class="row g-2">
+                        <div class="col-6">
                             <button type="submit" form="form-tolak-insight" class="btn-aura btn-aura-outline w-100">Tolak</button>
+                        </div>
+                        <div class="col-6">
                             <form method="POST" action="{{ route('admin.insight.setujui', $terpilih) }}"
                                   data-konfirmasi="Setujui insight ini? Pengerjaan akan siap diproses ke pembayaran.">
                                 @csrf
                                 <button type="submit" class="btn-aura btn-aura-primary w-100">Setujui Insight</button>
                             </form>
                         </div>
+                    </div>
                     @else
                         <p class="teks-bantuan">Insight ini sudah diperiksa dengan status <strong>{{ config('aura.statusInsight.' . $terpilih->statusInsight) }}</strong>.</p>
                     @endif

@@ -14,6 +14,7 @@ class HasilPengerjaan extends ModelAura
     protected $fillable = [
         'idPendaftaran', 'idAkun', 'draftKonten', 'tanggalPengirimanDraft',
         'linkKonten', 'fileInsight', 'jumlahViews', 'jumlahLikes', 'jumlahKomentar',
+        'jumlahPengikut', 
         'tanggalPengirimanInsight', 'statusDraft', 'statusInsight',
     ];
 

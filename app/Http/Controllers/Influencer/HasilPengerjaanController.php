@@ -127,6 +127,7 @@ class HasilPengerjaanController extends Controller
                 'jumlahViews' => ['required', 'integer', 'min:0', 'max:2147483647'],
                 'jumlahLikes' => ['required', 'integer', 'min:0', 'max:2147483647'],
                 'jumlahKomentar' => ['required', 'integer', 'min:0', 'max:2147483647'],
+                'jumlahPengikut' => ['required', 'integer', 'min:1', 'max:2147483647'],
             ],
             [
                 'required' => ':attribute wajib diisi.',
@@ -136,6 +137,7 @@ class HasilPengerjaanController extends Controller
                 'fileInsight.max' => 'Ukuran gambar maksimal 5 MB.',
                 'integer' => ':attribute harus berupa angka bulat.',
                 'min' => ':attribute tidak boleh negatif.',
+                'jumlahPengikut.min' => 'Jumlah Pengikut minimal 1.',
             ],
             [
                 'linkKonten' => 'Link Konten',
@@ -143,6 +145,7 @@ class HasilPengerjaanController extends Controller
                 'jumlahViews' => 'Jumlah Views',
                 'jumlahLikes' => 'Jumlah Likes',
                 'jumlahKomentar' => 'Jumlah Komentar',
+                'jumlahPengikut' => 'Jumlah Pengikut',
             ]
         );
 
@@ -154,6 +157,7 @@ class HasilPengerjaanController extends Controller
             'jumlahViews' => $data['jumlahViews'],
             'jumlahLikes' => $data['jumlahLikes'],
             'jumlahKomentar' => $data['jumlahKomentar'],
+            'jumlahPengikut' => $data['jumlahPengikut'],
             'tanggalPengirimanInsight' => now()->toDateString(),
             'statusInsight' => 'menunggu',
         ]);
