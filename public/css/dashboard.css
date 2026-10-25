@@ -1,0 +1,319 @@
+/* Kerangka dashboard: sidebar, topbar, isi (wireframe Gambar 68, 82, 87) */
+.dash {
+    display: flex;
+    min-height: 100vh;
+}
+
+/* ---------- Sidebar ---------- */
+@media (min-width: 992px) {
+    .sidebar-wrap {
+        position: sticky;
+        top: 0;
+        flex: none;
+        width: 240px;
+        height: 100vh;
+        overflow-y: auto;
+        border-right: 1px solid var(--color-border);
+        background-color: var(--color-beige);
+    }
+}
+
+.sidebar {
+    --bs-offcanvas-width: 260px;
+    --bs-offcanvas-bg: var(--color-beige);
+    --bs-offcanvas-color: var(--color-charcoal);
+}
+
+.sidebar-isi {
+    display: flex;
+    flex-direction: column;
+    gap: var(--spacing-24);
+    min-height: 100%;
+    padding: var(--spacing-24) var(--spacing-16);
+}
+
+@media (max-width: 991.98px) {
+    .sidebar-isi {
+        flex: 1 1 auto;
+        overflow-y: auto;
+    }
+}
+
+.sidebar-logo {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    height: 56px;
+    border-radius: var(--radius-card);
+    background-color: var(--color-ivory);
+    font-weight: 600;
+}
+
+.sidebar-menu {
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+}
+
+.sidebar-grup {
+    margin: 14px 0 6px;
+    padding: 0 12px;
+    font-size: 11px;
+    font-weight: 600;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    color: var(--color-muted);
+}
+
+/* Satu baris menu di sidebar.
+   Dipakai di: layouts/dashboard.blade.php  ->  <a class="menu-item"> dan <span class="menu-item is-disabled">
+   Bentuk pil (radius 100px) disamakan dengan tombol, sesuai DESIGN.md. */
+.menu-item {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 10px 16px;                    /* padding samping sedikit lebih lebar supaya ikon tidak menempel ke lengkungan */
+    border-radius: var(--radius-button);   /* 100px = bentuk pil */
+    font-size: var(--text-body-sm);
+    transition: background-color 0.2s ease, color 0.2s ease;
+}
+
+/* Ikon Bootstrap Icons di kiri menu (nama ikon diambil dari config/menu.php) */
+.menu-item .bi {
+    font-size: 16px;
+}
+
+/* Menu biasa saat di-hover: latar pink.
+   Hanya berlaku untuk <a>, jadi menu redup (<span>) tidak ikut berubah warna. */
+a.menu-item:hover {
+    background-color: var(--color-blush);
+}
+
+/* Menu halaman yang sedang dibuka: Mocha dengan teks putih.
+   Class is-active ditambahkan otomatis oleh layouts/dashboard.blade.php
+   berdasarkan nama route (request()->routeIs(...)). */
+.menu-item.is-active {
+    background-color: var(--color-mocha);
+    color: var(--color-white);
+    font-weight: 600;
+}
+
+/* Menu aktif saat di-hover: warnanya berbalik menjadi pink dengan teks charcoal */
+a.menu-item.is-active:hover {
+    background-color: var(--color-blush);
+    color: var(--color-charcoal);
+}
+
+/* Menu yang halamannya belum dibuat, atau dikunci untuk influencer yang belum diverifikasi */
+.menu-item.is-disabled {
+    opacity: 0.45;
+    cursor: not-allowed;
+}
+
+.sidebar-logout {
+    margin-top: auto;
+}
+
+/* ---------- Kolom kanan ---------- */
+.dash-main {
+    display: flex;
+    flex: 1;
+    flex-direction: column;
+    min-width: 0;
+}
+
+.topbar {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: var(--spacing-16);
+    height: 72px;
+    padding: 0 var(--spacing-32);
+    border-bottom: 1px solid var(--color-border);
+}
+
+.topbar-kiri {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+}
+
+.topbar-judul {
+    font-size: 22px;
+    font-weight: 700;
+}
+
+.tombol-menu {
+    display: grid;
+    place-items: center;
+    width: 40px;
+    height: 40px;
+    border: 1px solid var(--color-charcoal);
+    border-radius: 50%;
+    background: transparent;
+    font-size: 20px;
+}
+
+.pengguna-info {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+}
+
+.pengguna-teks {
+    text-align: right;
+}
+
+.pengguna-nama {
+    font-size: var(--text-body-sm);
+    font-weight: 500;
+}
+
+.pengguna-peran {
+    font-size: var(--text-caption);
+    color: var(--color-muted);
+}
+
+.avatar {
+    display: grid;
+    place-items: center;
+    flex: none;
+    width: 40px;
+    height: 40px;
+    border-radius: 50%;
+    background-color: var(--color-blush);
+    font-weight: 600;
+}
+
+.dash-konten {
+    display: flex;
+    flex-direction: column;
+    gap: var(--spacing-24);
+    padding: 28px var(--spacing-32);
+}
+
+.judul-bagian {
+    margin-bottom: 12px;
+    font-size: 15px;
+    font-weight: 600;
+}
+
+/* ---------- Status Verifikasi ---------- */
+.status-box {
+    display: flex;
+    align-items: center;
+    gap: 20px;
+    padding: var(--spacing-24);
+    border: 1px solid var(--color-border);
+    border-radius: var(--radius-card);
+    background-color: var(--color-white);
+}
+
+.status-ikon {
+    display: grid;
+    place-items: center;
+    flex: none;
+    width: 64px;
+    height: 64px;
+    border-radius: 50%;
+    background-color: var(--color-beige);
+    font-size: 28px;
+}
+
+.status-ikon-diverifikasi {
+    background-color: var(--color-blush);
+}
+
+.status-ikon-ditolak {
+    border: 1px solid var(--color-error);
+    background-color: transparent;
+    color: var(--color-error);
+}
+
+.status-teks {
+    flex: 1;
+    min-width: 0;
+}
+
+.status-teks h2 {
+    margin-bottom: 8px;
+    font-size: var(--text-subheading);
+    font-weight: 700;
+}
+
+.status-teks p {
+    margin: 0;
+    font-size: var(--text-body-sm);
+    color: var(--color-muted);
+}
+
+/* Daftar data label-nilai */
+.daftar-data {
+    margin: 0;
+    border: 1px solid var(--color-border);
+    border-radius: var(--radius-card);
+    background-color: var(--color-white);
+}
+
+.daftar-data-baris {
+    display: grid;
+    grid-template-columns: 220px 1fr;
+    gap: var(--spacing-16);
+    padding: 12px var(--spacing-16);
+    font-size: var(--text-body-sm);
+}
+
+.daftar-data-baris + .daftar-data-baris {
+    border-top: 1px solid var(--color-border);
+}
+
+.daftar-data dt {
+    font-weight: 400;
+    color: var(--color-muted);
+}
+
+.daftar-data dd {
+    margin: 0;
+    font-weight: 600;
+    overflow-wrap: anywhere;
+}
+
+.catatan {
+    padding: 14px var(--spacing-16);
+    border: 1px dashed var(--color-border);
+    border-radius: var(--radius-card);
+    font-size: 13px;
+    color: var(--color-muted);
+}
+
+/* ---------- Layar kecil ---------- */
+@media (max-width: 767.98px) {
+    .status-box {
+        flex-wrap: wrap;
+    }
+}
+
+@media (max-width: 575.98px) {
+    .topbar {
+        padding: 0 var(--spacing-16);
+    }
+
+    .dash-konten {
+        padding: var(--spacing-24) var(--spacing-16);
+    }
+
+    .pengguna-teks {
+        display: none;
+    }
+
+    .daftar-data-baris {
+        grid-template-columns: 1fr;
+        gap: 2px;
+    }
+}
+
+@media (prefers-reduced-motion: reduce) {
+    .menu-item {
+        transition: none;
+    }
+}

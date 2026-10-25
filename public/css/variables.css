@@ -1,0 +1,46 @@
+/* Warna, font, ukuran, dan jarak untuk seluruh website. Ganti di sini, semua halaman ikut berubah. */
+:root {
+    /* Palet Aura Community */
+    --color-ivory: #FAF7F4;     /* latar halaman dan navbar */
+    --color-beige: #E7DCCF;     /* latar section dan sidebar */
+    --color-blush: #DBA7B1;     /* tombol utama dan aksen */
+    --color-mocha: #8E7564;     /* tombol saat hover */
+    --color-charcoal: #2E2E2E;  /* judul, teks, footer */
+    --color-white: #FFFFFF;     /* permukaan kartu */
+
+    /* Turunan Charcoal untuk teks sekunder dan garis tipis */
+    --color-muted: rgba(46, 46, 46, 0.68);
+    --color-border: rgba(46, 46, 46, 0.14);
+
+    /* Satu-satunya warna di luar palet, khusus pesan kesalahan agar mudah dikenali */
+    --color-error: #B3261E;
+
+    --font-sans: 'Inter', ui-sans-serif, system-ui, -apple-system, 'Segoe UI', Roboto, sans-serif;
+    --font-serif: 'Source Serif 4', ui-serif, Georgia, 'Times New Roman', serif;
+
+    --text-caption: 12px;
+    --text-body-sm: 14px;
+    --text-body: 16px;
+    --text-subheading: 18px;
+    --text-heading-sm: 24px;
+    --text-heading: 32px;
+    --text-heading-lg: 48px;
+    --text-display: 56px;
+
+    --spacing-8: 8px;
+    --spacing-16: 16px;
+    --spacing-24: 24px;
+    --spacing-32: 32px;
+    --spacing-40: 40px;
+    --spacing-48: 48px;
+    --spacing-64: 64px;
+    --spacing-80: 80px;
+
+    --radius-small: 12px;
+    --radius-card: 16px;
+    --radius-image: 24px;
+    --radius-badge: 30px;
+    --radius-button: 100px;
+
+    --page-max-width: 1200px;
+}

@@ -1,0 +1,525 @@
+/* =====================================================================
+   LANDING PAGE (wireframe Gambar 58-65)
+   Dimuat oleh: resources/views/landing.blade.php (lewat @push('styles'))
+   Tombol (.btn-aura) diatur di components.css, variabel warna di variables.css.
+   ===================================================================== */
+
+/* Klik menu navbar menggulir halaman dengan halus, bukan melompat */
+html {
+    scroll-behavior: smooth;
+}
+
+/* Pembungkus isi selebar maksimal 1200px (DESIGN.md: page max-width), di tengah layar.
+   Dipakai di setiap bagian: <div class="kontainer"> */
+.kontainer {
+    width: 100%;
+    max-width: calc(var(--page-max-width) + 48px);
+    margin: 0 auto;
+    padding: 0 var(--spacing-24);
+}
+
+
+/* ---------------------------------------------------------------------
+   NAVBAR  (landing/navbar.blade.php)
+   Variabel --bs-navbar-* mengganti warna bawaan Bootstrap dengan warna kita.
+   --------------------------------------------------------------------- */
+.navbar-landing {
+    --bs-navbar-color: var(--color-charcoal);
+    --bs-navbar-hover-color: var(--color-charcoal);
+    --bs-navbar-active-color: var(--color-charcoal);
+    padding: var(--spacing-16) 0;
+    border-bottom: 1px solid var(--color-border);
+    background-color: var(--color-ivory);
+}
+
+.navbar-landing .kontainer {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    justify-content: space-between;
+}
+
+/* Menu berbentuk pil, menjadi pink saat di-hover (sama seperti menu sidebar dashboard) */
+.navbar-landing .nav-link {
+    padding: 8px 14px;
+    border-radius: var(--radius-button);
+    font-size: var(--text-body-sm);
+    transition: background-color 0.2s ease;
+}
+
+.navbar-landing .nav-link:hover {
+    background-color: var(--color-blush);
+}
+
+.navbar-landing .nav-link.active {
+    font-weight: 600;
+}
+
+.navbar-aksi {
+    display: flex;
+    gap: 12px;
+}
+
+/* Tombol hamburger, bulat seperti tombol menu di dashboard.
+.navbar-landing .navbar-toggler {
+    width: 40px;
+    height: 40px;
+    padding: 0;
+    border: 1px solid var(--color-charcoal);
+    border-radius: 50%;
+    font-size: 20px;
+    line-height: 1;
+}
+
+.navbar-landing .navbar-toggler:focus {
+    box-shadow: none;
+}
+
+/* Layar di bawah 1200px: menu terlipat, beri jarak saat dibuka */
+@media (max-width: 1199.98px) {
+    /* Tombol hamburger hanya tampil di layar kecil, dengan ikon di tengah lingkaran */
+    .navbar-landing .navbar-toggler {
+        display: grid;
+        place-items: center;
+    }
+
+    .navbar-landing .navbar-collapse {
+        padding-top: var(--spacing-16);
+    }
+
+    .navbar-aksi {
+        padding: var(--spacing-8) 0 4px;
+    }
+}
+
+
+/* ---------------------------------------------------------------------
+   UMUM UNTUK SEMUA BAGIAN
+   --------------------------------------------------------------------- */
+
+/* Jarak atas-bawah setiap bagian (DESIGN.md: section gap 80px) */
+.bagian {
+    padding: var(--spacing-80) 0;
+}
+
+/* Bagian berlatar beige, berselang-seling dengan ivory (palet: Section background) */
+.bagian-beige {
+    background-color: var(--color-beige);
+}
+
+/* Judul dan deskripsi di tengah, di atas isi setiap bagian */
+.bagian-kepala {
+    max-width: 760px;
+    margin: 0 auto var(--spacing-48);
+    text-align: center;
+}
+
+.bagian-kepala p {
+    margin: 0;
+    color: var(--color-muted);
+}
+
+/* Judul bagian memakai font serif (DESIGN.md: Editorial Section Headline, serif 40px ke atas) */
+.judul-editorial {
+    margin-bottom: 12px;
+    font-family: var(--font-serif);
+    font-size: 40px;
+    font-weight: 400;
+    line-height: 1.2;
+    letter-spacing: -0.04em;
+}
+
+/* Efek stabilo pink di belakang kata pilihan.
+   Teksnya tetap charcoal supaya mudah dibaca; pink hanya di bagian bawah huruf. */
+.sorot {
+    padding: 0 4px;
+    background: linear-gradient(transparent 62%, var(--color-blush) 62%);
+}
+
+
+/* ---------------------------------------------------------------------
+   GAMBAR  (components/gambar.blade.php)
+   aspect-ratio menjaga perbandingan lebar dan tinggi, jadi gambar tidak gepeng
+   di layar berapa pun. object-fit: cover memotong foto supaya pas, bukan meregang.
+   --------------------------------------------------------------------- */
+.gambar {
+    display: block;
+    width: 100%;
+    border-radius: var(--radius-image);
+    object-fit: cover;
+}
+
+/* Kotak pengganti saat foto belum tersedia */
+.gambar-kosong {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: var(--spacing-8);
+    background-color: var(--color-beige);
+    font-size: 13px;
+    color: var(--color-muted);
+}
+
+/* Di bagian berlatar beige, kotak pengganti dibuat ivory supaya tetap terlihat */
+.bagian-beige .gambar-kosong {
+    background-color: var(--color-ivory);
+}
+
+.gambar-kosong .bi {
+    font-size: 28px;
+}
+
+.hero-gambar    { aspect-ratio: 10 / 7; }  /* 600 x 420 di wireframe */
+.tentang-gambar { aspect-ratio: 16 / 9; }  /* 616 x 340 di wireframe */
+.galeri-gambar  { aspect-ratio: 4 / 3; }
+
+/* Gambar portofolio menempel di bagian atas kartu, jadi sudutnya mengikuti kartu */
+.porto-gambar {
+    aspect-ratio: 16 / 10;
+    border-radius: 0;
+}
+
+
+/* ---------------------------------------------------------------------
+   HERO  (landing/hero.blade.php)
+   --------------------------------------------------------------------- */
+.hero {
+    padding: 88px 0;
+}
+
+/* DESIGN.md: Hero Display Headline, sans 56px, huruf sangat rapat */
+.hero-judul {
+    font-size: var(--text-display);
+    font-weight: 500;
+    line-height: 1.08;
+    letter-spacing: -0.04em;
+}
+
+.hero-deskripsi {
+    max-width: 520px;
+    margin: var(--spacing-24) 0 var(--spacing-32);
+    font-size: var(--text-subheading);
+    color: var(--color-muted);
+}
+
+.hero-aksi {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 12px;
+}
+
+
+/* ---------------------------------------------------------------------
+   TENTANG  (landing/tentang.blade.php)
+   --------------------------------------------------------------------- */
+.tentang-utama {
+    font-size: var(--text-subheading);
+}
+
+.statistik {
+    display: flex;
+    gap: var(--spacing-16);
+    margin-top: var(--spacing-24);
+    padding: var(--spacing-24);
+    border: 1px solid var(--color-border);
+    border-radius: var(--radius-card);
+    background-color: var(--color-white);
+}
+
+.statistik-item {
+    flex: 1;
+}
+
+/* Garis pemisah di kiri item kedua dan seterusnya */
+.statistik-item + .statistik-item {
+    padding-left: var(--spacing-16);
+    border-left: 1px solid var(--color-border);
+}
+
+.statistik-item strong {
+    display: block;
+    font-size: var(--text-heading-sm);
+    font-weight: 600;
+}
+
+.statistik-item span {
+    font-size: 13px;
+    color: var(--color-muted);
+}
+
+
+/* ---------------------------------------------------------------------
+   KARTU  (layanan, portofolio, testimoni, kontak)
+   DESIGN.md: Feature Card, putih, sudut 16px, garis tipis, tanpa bayangan.
+   height: 100% membuat kartu dalam satu baris sama tinggi.
+   overflow: hidden memotong gambar portofolio supaya ikut sudut kartu.
+   --------------------------------------------------------------------- */
+.kartu {
+    display: flex;
+    flex-direction: column;
+    height: 100%;
+    overflow: hidden;
+    border: 1px solid var(--color-border);
+    border-radius: var(--radius-card);
+    background-color: var(--color-white);
+}
+
+.kartu-isi {
+    display: flex;
+    flex: 1;
+    flex-direction: column;
+    gap: 12px;
+    padding: var(--spacing-32);
+}
+
+.kartu-isi h3 {
+    font-size: 20px;
+    font-weight: 600;
+}
+
+.kartu-isi p {
+    margin: 0;
+    color: var(--color-muted);
+}
+
+/* Lingkaran pink berisi ikon (layanan dan kontak) */
+.ikon-kartu {
+    display: grid;
+    place-items: center;
+    width: 48px;
+    height: 48px;
+    border-radius: 50%;
+    background-color: var(--color-blush);
+    font-size: 22px;
+}
+
+/* Baris bawah kartu portofolio. margin-top: auto mendorongnya ke dasar kartu. */
+.porto-kaki {
+    display: flex;
+    justify-content: space-between;
+    margin-top: auto;
+    padding-top: var(--spacing-16);
+    border-top: 1px solid var(--color-border);
+    font-size: 13px;
+    color: var(--color-muted);
+}
+
+.porto-kaki strong {
+    color: var(--color-charcoal);
+    font-weight: 600;
+}
+
+/* Tombol di kartu kontak, selalu di dasar kartu dan selebar kartu */
+.kartu-tombol {
+    width: 100%;
+    margin-top: auto;
+}
+
+
+/* ---------------------------------------------------------------------
+   TESTIMONI  (landing/testimoni.blade.php)
+   --------------------------------------------------------------------- */
+.testi-orang {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+}
+
+.testi-avatar {
+    display: grid;
+    place-items: center;
+    flex: none;
+    width: 44px;
+    height: 44px;
+    border-radius: 50%;
+    background-color: var(--color-beige);
+    font-weight: 600;
+}
+
+.testi-nama {
+    display: block;
+    font-size: 15px;
+}
+
+.testi-perusahaan {
+    font-size: var(--text-caption);
+    color: var(--color-muted);
+}
+
+.testi-bintang {
+    display: flex;
+    gap: 4px;
+    color: var(--color-mocha);
+}
+
+/* DESIGN.md: Quote Block memakai serif */
+.testi-kutipan {
+    margin: 0;
+    font-family: var(--font-serif);
+    font-size: var(--text-subheading);
+    line-height: 1.5;
+}
+
+
+/* ---------------------------------------------------------------------
+   FOOTER  (landing/footer.blade.php)
+   Latar Charcoal (palet: Footer), teks ivory.
+   --------------------------------------------------------------------- */
+.footer {
+    padding: var(--spacing-64) 0 28px;
+    background-color: var(--color-charcoal);
+    color: var(--color-ivory);
+}
+
+.footer .logo-teks {
+    color: var(--color-ivory);
+}
+
+.footer-deskripsi {
+    margin: var(--spacing-16) 0 0;
+    font-size: var(--text-body-sm);
+    color: rgba(250, 247, 244, 0.72);
+}
+
+.footer-judul {
+    margin-bottom: 14px;
+    font-size: 11px;
+    font-weight: 600;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    color: rgba(250, 247, 244, 0.6);
+}
+
+.footer-daftar {
+    display: flex;
+    flex-direction: column;
+    gap: var(--spacing-8);
+    margin: 0;
+    padding: 0;
+    list-style: none;
+    font-size: var(--text-body-sm);
+}
+
+.footer-daftar a {
+    display: inline-flex;
+    align-items: center;
+    gap: var(--spacing-8);
+    transition: color 0.2s ease;
+}
+
+.footer-daftar a:hover {
+    color: var(--color-blush);
+}
+
+.hak-cipta {
+    margin: var(--spacing-40) 0 0;
+    padding-top: 20px;
+    border-top: 1px solid rgba(250, 247, 244, 0.16);
+    font-size: var(--text-caption);
+    color: rgba(250, 247, 244, 0.6);
+}
+
+
+/* ---------------------------------------------------------------------
+   LAYAR KECIL
+   --------------------------------------------------------------------- */
+@media (max-width: 991.98px) {
+    .hero {
+        padding: 56px 0;
+    }
+
+    .hero-judul {
+        font-size: 40px;
+    }
+
+    .bagian {
+        padding: var(--spacing-64) 0;
+    }
+
+    .judul-editorial {
+        font-size: var(--text-heading);
+    }
+}
+
+@media (max-width: 575.98px) {
+    .statistik {
+        flex-direction: column;
+    }
+
+    .statistik-item + .statistik-item {
+        padding: var(--spacing-16) 0 0;
+        border-top: 1px solid var(--color-border);
+        border-left: 0;
+    }
+}
+
+@media (prefers-reduced-motion: reduce) {
+    html {
+        scroll-behavior: auto;
+    }
+
+    .navbar-landing .nav-link,
+    .footer-daftar a {
+        transition: none;
+    }
+}
+
+/* Navbar tetap di atas layar saat halaman digulir.
+   z-index 1030 = di atas isi halaman, sama seperti navbar sticky bawaan Bootstrap. */
+.navbar-landing {
+    position: sticky;
+    top: 0;
+    z-index: 1030;
+    transition: background-color 0.25s ease, padding 0.25s ease;
+}
+
+/* Setelah digulir (class dipasang landing.js): lebih ramping dan agak transparan.
+   backdrop-filter membuat isi halaman di belakang navbar tampak buram.
+   Tidak memakai bayangan, sesuai DESIGN.md; pemisahnya tetap garis tipis di bawah. */
+.navbar-landing.is-tergulir {
+    padding: 10px 0;
+    background-color: rgba(250, 247, 244, 0.9);
+    -webkit-backdrop-filter: blur(10px);
+    backdrop-filter: blur(10px);
+}
+
+/* Saat menu diklik, bagian tujuan tidak tertutup navbar yang menempel.
+   Nilainya kira-kira setinggi navbar. */
+section[id] {
+    scroll-margin-top: 76px;
+}
+
+/* Di HP, menu lipat yang panjang bisa digulir sendiri di dalam navbar */
+@media (max-width: 1199.98px) {
+    .navbar-landing .navbar-collapse {
+        max-height: calc(100vh - 76px);
+        overflow-y: auto;
+    }
+}
+
+/* Animasi muncul: awalnya transparan dan sedikit lebih rendah,
+   lalu naik ke posisi asli saat terlihat di layar (class is-terlihat dari landing.js) */
+.muncul {
+    opacity: 0;
+    transform: translateY(24px);
+    transition: opacity 0.6s ease, transform 0.6s ease;
+}
+
+.muncul.is-terlihat {
+    opacity: 1;
+    transform: none;
+}
+
+/* Pengguna yang mematikan animasi di pengaturan perangkatnya tidak mendapat animasi apa pun */
+@media (prefers-reduced-motion: reduce) {
+    .navbar-landing {
+        transition: none;
+    }
+
+    .muncul {
+        opacity: 1;
+        transform: none;
+        transition: none;
+    }
+}

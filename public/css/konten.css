@@ -1,0 +1,1001 @@
+/* =====================================================================
+   ISI HALAMAN DASHBOARD YANG DIPAKAI BERULANG
+   Dimuat oleh: layouts/dashboard.blade.php (semua halaman Admin, Owner Brand, Influencer)
+   Dipakai oleh: Verifikasi Akun, Data Influencer, Campaign, dan seterusnya.
+   ===================================================================== */
+
+
+/* ---------------------------------------------------------------------
+   TATA LETAK DUA KOLOM  (wireframe Gambar 69, 73, 74)
+   Kiri melebar mengisi sisa ruang, kanan selebar 400px.
+   Di bawah 1200px panel kanan turun ke bawah daftar.
+   --------------------------------------------------------------------- */
+.dua-kolom {
+    display: flex;
+    align-items: flex-start;
+    gap: var(--spacing-24);
+}
+
+.kolom-utama {
+    display: flex;
+    flex: 1;
+    flex-direction: column;
+    gap: 12px;
+    min-width: 0;          /* supaya tabel bisa mengecil, tidak meluber keluar */
+}
+
+.kolom-samping {
+    display: flex;
+    flex: none;
+    flex-direction: column;
+    gap: 12px;
+    width: 400px;
+}
+
+/* Jarak sudah diatur oleh gap, jadi margin bawah judul dihapus di dalam kolom */
+.kolom-utama > .judul-bagian,
+.kolom-samping > .judul-bagian {
+    margin-bottom: 0;
+}
+
+@media (max-width: 1199.98px) {
+    .dua-kolom {
+        flex-direction: column;
+        align-items: stretch;
+    }
+
+    .kolom-samping {
+        width: 100%;
+    }
+}
+
+
+/* ---------------------------------------------------------------------
+   TABEL
+   tabel-wrap = pembungkus bersudut 16px yang bisa digeser ke samping di HP.
+   --------------------------------------------------------------------- */
+.tabel-wrap {
+    overflow-x: auto;
+    border: 1px solid var(--color-border);
+    border-radius: var(--radius-card);
+    background-color: var(--color-white);
+}
+
+.tabel-aura {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: var(--text-body-sm);
+}
+
+.tabel-aura th,
+.tabel-aura td {
+    padding: 12px var(--spacing-16);
+    border-bottom: 1px solid var(--color-border);
+    text-align: left;
+    vertical-align: middle;
+    white-space: nowrap;   /* email dan tanggal tidak terpotong ke baris baru */
+}
+
+.tabel-aura thead th {
+    background-color: var(--color-ivory);
+    font-size: 13px;
+    font-weight: 600;
+    color: var(--color-muted);
+}
+
+.tabel-aura tbody tr:last-child td {
+    border-bottom: 0;
+}
+
+.tabel-aura tbody tr:hover {
+    background-color: rgba(219, 167, 177, 0.12);   /* pink sangat tipis */
+}
+
+/* Baris yang sedang dibuka di panel kanan */
+.tabel-aura tbody tr.is-terpilih {
+    background-color: var(--color-beige);
+}
+
+/* Kolom aksi selebar isinya saja */
+.kolom-aksi {
+    width: 1%;
+}
+
+/* Beberapa tautan aksi berjajar (Detail, Ubah, Hapus) */
+.aksi-baris {
+    display: flex;
+    gap: 12px;
+}
+
+
+/* ---------------------------------------------------------------------
+   PANEL DATA DI KOLOM KANAN
+   daftar-data dan daftar-data-baris berasal dari dashboard.css (label kiri, nilai kanan).
+   Versi tumpuk menaruh label di atas nilai, karena panel 400px terlalu sempit.
+   --------------------------------------------------------------------- */
+.daftar-data-tumpuk .daftar-data-baris {
+    grid-template-columns: 1fr;
+    gap: 2px;
+}
+
+.daftar-data-tumpuk dt {
+    font-size: var(--text-caption);
+}
+
+/* Dua tombol aksi berdampingan, sama lebar */
+.panel-aksi {
+    display: flex;
+    gap: 12px;
+}
+
+.panel-aksi form {
+    flex: 1;
+}
+
+
+/* ---------------------------------------------------------------------
+   KEADAAN KOSONG (tidak ada data)
+   --------------------------------------------------------------------- */
+.kosong {
+    padding: var(--spacing-32) var(--spacing-16);
+    border: 1px dashed var(--color-border);
+    border-radius: var(--radius-card);
+    background-color: var(--color-white);
+    text-align: center;
+    font-size: var(--text-body-sm);
+    color: var(--color-muted);
+}
+
+
+/* ---------------------------------------------------------------------
+   PAGINASI  (partials/paginasi.blade.php)
+   Nomor halaman berbentuk pil, aktif = Mocha (sama seperti menu sidebar aktif),
+   hover = pink.
+   --------------------------------------------------------------------- */
+.paginasi {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    justify-content: space-between;
+    gap: 12px;
+    font-size: 13px;
+    color: var(--color-muted);
+}
+
+.paginasi-daftar {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 6px;
+    margin: 0;
+    padding: 0;
+    list-style: none;
+}
+
+.paginasi-item {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    min-width: 34px;
+    height: 34px;
+    padding: 0 12px;
+    border: 1px solid var(--color-border);
+    border-radius: var(--radius-button);
+    background-color: var(--color-white);
+    color: var(--color-charcoal);
+    transition: background-color 0.2s ease, color 0.2s ease;
+}
+
+a.paginasi-item:hover {
+    border-color: var(--color-blush);
+    background-color: var(--color-blush);
+}
+
+.paginasi-item.is-aktif {
+    border-color: var(--color-mocha);
+    background-color: var(--color-mocha);
+    color: var(--color-white);
+    font-weight: 600;
+}
+
+.paginasi-item.is-nonaktif {
+    opacity: 0.45;
+}
+
+@media (prefers-reduced-motion: reduce) {
+    .paginasi-item {
+        transition: none;
+    }
+}
+
+
+/* ---------------------------------------------------------------------
+   TOOLBAR: cari, filter, tombol tambah  (wireframe Gambar 70, 71, 72)
+   flex-wrap: di layar sempit, isi toolbar turun ke baris berikutnya.
+   --------------------------------------------------------------------- */
+.toolbar {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 12px;
+}
+
+/* Kolom cari berbentuk pil, dengan ikon kaca pembesar di kiri */
+.input-cari {
+    position: relative;
+    flex: 1;
+    min-width: 240px;
+}
+
+.input-cari .bi {
+    position: absolute;
+    top: 50%;
+    left: 16px;
+    transform: translateY(-50%);
+    color: var(--color-muted);
+    pointer-events: none;   /* klik di ikon tetap mengenai kolom isian */
+}
+
+.input-cari .input-aura {
+    padding-left: 42px;
+    border-radius: var(--radius-button);
+}
+
+/* Pilihan filter berbentuk pil, selebar 200px seperti di wireframe */
+.input-pilih {
+    width: 200px;
+    border-radius: var(--radius-button);
+}
+
+@media (max-width: 575.98px) {
+    .input-pilih {
+        flex: 1;
+        width: auto;
+    }
+}
+
+
+/* ---------------------------------------------------------------------
+   LABEL STATUS DI TABEL
+   badge-status dasarnya ada di components.css
+   --------------------------------------------------------------------- */
+.badge-aktif {
+    background-color: var(--color-beige);
+}
+
+/* Wireframe menampilkan Blacklist dengan warna lebih gelap dari Aktif */
+.badge-blacklist {
+    background-color: var(--color-charcoal);
+    color: var(--color-ivory);
+}
+
+
+/* ---------------------------------------------------------------------
+   TOMBOL YANG TAMPIL SEPERTI TAUTAN (dipakai untuk Hapus di tabel)
+   Hapus harus berupa <button> di dalam form, tapi tampilannya disamakan dengan tautan Detail dan Ubah.
+   --------------------------------------------------------------------- */
+.form-sebaris {
+    display: inline;
+    margin: 0;
+}
+
+.tautan-tombol {
+    padding: 0;
+    border: 0;
+    background: none;
+    font: inherit;
+    font-weight: 600;
+    color: inherit;
+    text-decoration: underline;
+    text-underline-offset: 3px;
+    cursor: pointer;
+}
+
+.tautan-tombol:hover {
+    color: var(--color-error);
+}
+
+
+/* ---------------------------------------------------------------------
+   KEPALA HALAMAN DETAIL: tautan kembali di kiri, tombol aksi di kanan
+   --------------------------------------------------------------------- */
+.kepala-halaman {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    justify-content: space-between;
+    gap: 12px;
+}
+
+.aksi-kepala {
+    display: flex;
+    gap: 12px;
+}
+
+.tautan-kembali {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    align-self: flex-start;
+    font-size: var(--text-body-sm);
+    color: var(--color-muted);
+}
+
+.tautan-kembali:hover {
+    color: var(--color-charcoal);
+}
+
+/* Beberapa bagian disusun ke bawah dengan jarak 24px */
+.tumpukan {
+    display: flex;
+    flex-direction: column;
+    gap: var(--spacing-24);
+}
+
+
+/* ---------------------------------------------------------------------
+   KARTU FORMULIR  (form tambah/ubah, bagian blacklist)
+   Gaya kartu yang sama dengan panel lain: putih, garis tipis, sudut 16px.
+   --------------------------------------------------------------------- */
+.form-kartu {
+    display: flex;
+    flex-direction: column;
+    gap: var(--spacing-16);
+    height: 100%;
+    padding: var(--spacing-24);
+    border: 1px solid var(--color-border);
+    border-radius: var(--radius-card);
+    background-color: var(--color-white);
+}
+
+.form-judul {
+    font-size: 15px;
+    font-weight: 600;
+}
+
+/* Judul kecil di dalam form, misalnya "INSTAGRAM" dan "TIKTOK" */
+.form-sub {
+    margin: 4px 0 -4px;
+    font-size: var(--text-caption);
+    font-weight: 600;
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+    color: var(--color-muted);
+}
+
+/* Tombol Batal dan Simpan di kanan bawah form */
+.form-aksi {
+    display: flex;
+    justify-content: flex-end;
+    gap: 12px;
+    margin-top: var(--spacing-24);
+}
+
+/* Label status akun Nonaktif dan Suspended: garis tipis dan teks redup,
+   supaya jelas berbeda dari Aktif (beige) dan Blacklist (charcoal) */
+.badge-nonaktif {
+    border-color: var(--color-border);
+    background-color: transparent;
+    color: var(--color-muted);
+}
+
+/* Form satu kolom (wireframe Gambar 78, 91), tidak melebar memenuhi layar */
+.form-sempit {
+    max-width: 760px;
+}
+
+/* ---------------------------------------------------------------------
+   LABEL STATUS CAMPAIGN DAN PENDAFTARAN
+   Dipakai dengan: class="badge-status badge-{{ $status }}"
+   badge-ditolak sudah ada di components.css.
+   --------------------------------------------------------------------- */
+.badge-draft {
+    border-color: var(--color-border);
+    background-color: transparent;
+    color: var(--color-muted);
+}
+
+.badge-berjalan,
+.badge-diterima {
+    background-color: var(--color-blush);
+}
+
+.badge-selesai,
+.badge-menunggu {
+    background-color: var(--color-beige);
+}
+
+
+/* ---------------------------------------------------------------------
+   BARIS KETENTUAN PLATFORM  (admin/campaign/baris-ketentuan.blade.php)
+   Grid 4 kolom: Platform, Jenis Konten, Jumlah, tombol hapus.
+   --------------------------------------------------------------------- */
+.daftar-ketentuan {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+}
+
+.baris-ketentuan {
+    display: grid;
+    grid-template-columns: 1fr 1fr 90px auto;
+    align-items: end;
+    gap: 10px;
+    padding: 12px;
+    border: 1px solid var(--color-border);
+    border-radius: var(--radius-card);
+    background-color: var(--color-ivory);
+}
+
+/* Pesan error memanjang di bawah keempat kolom */
+.baris-ketentuan-error {
+    grid-column: 1 / -1;
+}
+
+/* Tombol bulat berisi ikon (hapus baris) */
+.tombol-ikon {
+    display: grid;
+    place-items: center;
+    width: 44px;
+    height: 44px;
+    border: 1px solid var(--color-border);
+    border-radius: 50%;
+    background-color: var(--color-white);
+    color: var(--color-charcoal);
+    cursor: pointer;
+    transition: background-color 0.2s ease, color 0.2s ease;
+}
+
+.tombol-ikon:hover:not(:disabled) {
+    border-color: var(--color-mocha);
+    background-color: var(--color-mocha);
+    color: var(--color-white);
+}
+
+/* Tombol hapus dimatikan kalau hanya tersisa satu baris (minimal 1 ketentuan) */
+.tombol-ikon:disabled {
+    opacity: 0.4;
+    cursor: not-allowed;
+}
+
+@media (max-width: 575.98px) {
+    .baris-ketentuan {
+        grid-template-columns: 1fr 1fr;
+    }
+}
+
+
+/* ---------------------------------------------------------------------
+   DAFTAR CENTANG OWNER BRAND  (admin/campaign/akses.blade.php)
+   Setiap pilihan berbentuk kotak yang bisa diklik di mana saja.
+   --------------------------------------------------------------------- */
+.daftar-pilihan {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+}
+
+.pilihan {
+    display: flex;
+    align-items: center;
+    gap: 14px;
+    padding: 14px var(--spacing-16);
+    border: 1px solid var(--color-border);
+    border-radius: var(--radius-card);
+    cursor: pointer;
+    transition: background-color 0.2s ease, border-color 0.2s ease;
+}
+
+.pilihan:hover {
+    background-color: var(--color-ivory);
+}
+
+/* :has() = kotak ikut berwarna saat checkbox di dalamnya dicentang */
+.pilihan:has(input:checked) {
+    border-color: var(--color-blush);
+    background-color: rgba(219, 167, 177, 0.15);
+}
+
+.pilihan input {
+    width: 18px;
+    height: 18px;
+    accent-color: var(--color-mocha);   /* warna centang */
+}
+
+.pilihan-teks {
+    display: flex;
+    flex-direction: column;
+}
+
+.pilihan-teks span {
+    font-size: 13px;
+    color: var(--color-muted);
+}
+
+
+/* ---------------------------------------------------------------------
+   LAIN-LAIN
+   --------------------------------------------------------------------- */
+
+/* Deretan label nama brand di detail campaign */
+.daftar-chip {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+    margin: 0;
+    padding: 0;
+    list-style: none;
+}
+
+/* Deskripsi panjang: baris baru yang diketik Admin tetap tampil sebagai baris baru */
+.teks-panjang {
+    white-space: pre-line;
+}
+
+/* ---------------------------------------------------------------------
+   PANEL DETAIL DUA BAGIAN  (wireframe Gambar 83, 88)
+   Kiri: informasi campaign. Garis tegak di tengah. Kanan: ketentuan atau perkembangan.
+   --------------------------------------------------------------------- */
+.panel-detail {
+    display: flex;
+    gap: var(--spacing-24);
+    padding: var(--spacing-24);
+    border: 1px solid var(--color-border);
+    border-radius: var(--radius-card);
+    background-color: var(--color-white);
+}
+
+.panel-detail-utama {
+    display: flex;
+    flex: 1;
+    flex-direction: column;
+    gap: 12px;
+    min-width: 0;
+}
+
+.panel-detail-samping {
+    display: flex;
+    flex: none;
+    flex-direction: column;
+    gap: 12px;
+    width: 340px;
+}
+
+.garis-tegak {
+    flex: none;
+    width: 1px;
+    background-color: var(--color-border);
+}
+
+/* Di bawah 992px kedua bagian bertumpuk, garis tegak menjadi garis mendatar */
+@media (max-width: 991.98px) {
+    .panel-detail {
+        flex-direction: column;
+    }
+
+    .garis-tegak {
+        width: auto;
+        height: 1px;
+    }
+
+    .panel-detail-samping {
+        width: 100%;
+    }
+}
+
+/* Judul kecil di dalam panel: "INFORMASI CAMPAIGN", "KETENTUAN PLATFORM" */
+.label-grup {
+    margin: 0;
+    font-size: var(--text-caption);
+    font-weight: 600;
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+    color: var(--color-muted);
+}
+
+/* Daftar label-nilai tanpa kotak: label 150px di kiri, nilai di kanan */
+.info-daftar {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+    margin: 0;
+    font-size: var(--text-body-sm);
+}
+
+.info-daftar > div {
+    display: grid;
+    grid-template-columns: 150px 1fr;
+    gap: 12px;
+}
+
+.info-daftar dt {
+    font-weight: 400;
+    color: var(--color-muted);
+}
+
+.info-daftar dd {
+    margin: 0;
+    font-weight: 600;
+    overflow-wrap: anywhere;
+}
+
+@media (max-width: 575.98px) {
+    .info-daftar > div {
+        grid-template-columns: 1fr;
+        gap: 2px;
+    }
+}
+
+/* Kotak berisi label di kiri dan angka/status di kanan (Perkembangan Campaign, Status pendaftaran) */
+.kotak-angka {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 12px;
+    padding: 12px 14px;
+    border: 1px solid var(--color-border);
+    border-radius: var(--radius-card);
+    background-color: var(--color-ivory);
+    font-size: var(--text-body-sm);
+}
+
+.kotak-angka strong {
+    font-size: var(--text-body);
+    white-space: nowrap;
+}
+
+/* Isi form pendaftaran yang disusun ke bawah dengan jarak kecil */
+.tumpukan-kecil {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+}
+
+/* Label status draft dan insight (dipakai lewat <x-status>).
+   badge-menunggu, badge-ditolak sudah ada sebelumnya. */
+.badge-revisi {
+    border-color: var(--color-mocha);
+    background-color: transparent;
+    color: var(--color-mocha);
+}
+
+.badge-disetujui {
+    background-color: var(--color-blush);
+}
+
+.badge-belum-dikirim {
+    border-color: var(--color-border);
+    background-color: transparent;
+    color: var(--color-muted);
+}
+
+/* Judul langkah (1. DRAFT KONTEN) dengan label status di kanannya */
+.kepala-langkah {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 12px;
+}
+
+/* Kotak pratinjau berkas (<x-pratinjau-berkas>).
+   Tidak memakai aspect-ratio tetap, jadi bentuknya mengikuti berkas aslinya:
+   video tegak 9:16 tampil tegak, video mendatar tampil mendatar.
+   max-height membatasi tinggi supaya video tegak tidak membuat panel terlalu panjang. */
+.pratinjau {
+    position: relative;   /* supaya tombol Perbesar bisa ditempatkan di pojok kotak */
+    display: flex;
+    justify-content: center;
+    overflow: hidden;
+    border: 1px solid var(--color-border);
+    border-radius: var(--radius-card);
+    background-color: var(--color-charcoal);
+}
+
+.pratinjau video,
+.pratinjau img {
+    display: block;
+    max-width: 100%;
+    max-height: 420px;
+    object-fit: contain;
+}
+
+/* Kotak kosong saat berkas tidak ada: tetap punya tinggi supaya terlihat */
+.pratinjau-kosong {
+    align-items: center;
+    min-height: 160px;
+    background-color: var(--color-beige);
+    font-size: 13px;
+}
+
+/* Tombol "Perbesar" di pojok kanan atas kotak pratinjau, berbentuk pil */
+.tombol-perbesar {
+    position: absolute;
+    top: 10px;
+    right: 10px;
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    padding: 6px 12px;
+    border: 0;
+    border-radius: var(--radius-button);
+    background-color: rgba(250, 247, 244, 0.92);   /* ivory agak transparan, tetap terbaca di atas video */
+    font-size: var(--text-caption);
+    font-weight: 600;
+    color: var(--color-charcoal);
+    cursor: pointer;
+    transition: background-color 0.2s ease, color 0.2s ease;
+}
+
+.tombol-perbesar:hover {
+    background-color: var(--color-mocha);
+    color: var(--color-white);
+}
+
+/* Jendela besar (modal Bootstrap) berlatar charcoal */
+.modal-pratinjau .modal-content {
+    border: 0;
+    border-radius: var(--radius-card);
+    background-color: var(--color-charcoal);
+    color: var(--color-ivory);
+}
+
+.modal-pratinjau .modal-header {
+    border-bottom: 1px solid rgba(250, 247, 244, 0.16);
+}
+
+.modal-pratinjau .modal-title {
+    font-size: var(--text-body);
+    font-weight: 600;
+    color: var(--color-ivory);
+}
+
+.modal-pratinjau .modal-body {
+    display: flex;
+    justify-content: center;
+    padding: var(--spacing-16);
+}
+
+/* Di jendela besar, berkas setinggi maksimal 80% layar.
+   Video tegak 9:16 pun terlihat jelas tanpa perlu menggulir. */
+.modal-pratinjau video,
+.modal-pratinjau img {
+    max-width: 100%;
+    max-height: 80vh;
+    border-radius: var(--radius-small);
+    object-fit: contain;
+}
+
+/* Kotak berisi nama berkas atau tanggal (wireframe: "draft-konten.mp4  Lihat") */
+.kotak-berkas {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    justify-content: space-between;
+    gap: 8px;
+    padding: 12px 14px;
+    border: 1px solid var(--color-border);
+    border-radius: var(--radius-small);
+    background-color: var(--color-ivory);
+    font-size: var(--text-body-sm);
+}
+
+/* Daftar feedback, yang terbaru di atas */
+.daftar-feedback {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    margin: 0;
+    padding: 0;
+    list-style: none;
+}
+
+.daftar-feedback li {
+    padding: 12px 14px;
+    border-radius: var(--radius-small);
+    background-color: var(--color-beige);
+    font-size: var(--text-body-sm);
+}
+
+.daftar-feedback p {
+    margin: 0 0 4px;
+}
+
+.daftar-feedback small {
+    font-size: var(--text-caption);
+    color: var(--color-muted);
+}
+
+/* Tiga kotak angka Views, Likes, Komentar berjajar */
+.metrik {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 8px;
+}
+
+.metrik .kotak-angka {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 4px;
+}
+
+/* Kolom pilih berkas. Tinggi otomatis karena tombol "Choose File" bawaan browser. */
+.input-berkas {
+    height: auto;
+    padding: 10px 14px;
+}
+
+.input-berkas::file-selector-button {
+    margin-right: 12px;
+    padding: 6px 14px;
+    border: 1px solid var(--color-charcoal);
+    border-radius: var(--radius-button);
+    background-color: transparent;
+    font-family: var(--font-sans);
+    font-size: 13px;
+    cursor: pointer;
+}
+
+.input-berkas::file-selector-button:hover {
+    border-color: var(--color-mocha);
+    background-color: var(--color-mocha);
+    color: var(--color-white);
+}
+
+/* Label status pembayaran (lewat <x-status jenis="statusPembayaran">) */
+.badge-belum {
+    background-color: var(--color-charcoal);
+    color: var(--color-ivory);
+}
+
+.badge-pending {
+    background-color: var(--color-beige);
+}
+
+.badge-berhasil {
+    background-color: var(--color-blush);
+}
+
+.badge-gagal {
+    border-color: var(--color-error);
+    background-color: transparent;
+    color: var(--color-error);
+}
+
+/* ID transaksi Xendit: huruf monospace supaya mudah dibaca dan disalin */
+.teks-kode {
+    font-family: ui-monospace, 'Cascadia Code', Consolas, monospace;
+    font-size: 12px;
+}
+
+/* Kolom kanan panel pembayaran lebih sempit dari panel campaign */
+.kolom-bayar {
+    width: 260px;
+}
+
+/* Kotak total jumlah pembayaran (wireframe: "Jumlah Pembayaran Rp 100.000") */
+.kotak-total {
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+    padding: 14px;
+    border: 1px solid var(--color-border);
+    border-radius: var(--radius-card);
+    background-color: var(--color-ivory);
+}
+
+.kotak-total span {
+    font-size: 13px;
+    color: var(--color-muted);
+}
+
+.kotak-total strong {
+    font-size: 22px;
+    font-weight: 700;
+}
+
+@media (max-width: 991.98px) {
+    .kolom-bayar {
+        width: 100%;
+    }
+}
+
+/* Label status laporan. badge-draft dan badge-belum sudah ada sebelumnya. */
+.badge-final {
+    background-color: var(--color-blush);
+}
+
+/* Panel laporan (wireframe Gambar 76, 89): satu kotak putih berisi semua bagian laporan */
+.panel-laporan {
+    display: flex;
+    flex-direction: column;
+    gap: var(--spacing-16);
+    padding: var(--spacing-24);
+    border: 1px solid var(--color-border);
+    border-radius: var(--radius-card);
+    background-color: var(--color-white);
+}
+
+/* Empat kotak angka berjajar: Influencer Selesai, Total Views, Total Likes, Total Komentar */
+.statistik-grid {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: var(--spacing-16);
+}
+
+.kartu-angka {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    padding: var(--spacing-16);
+    border: 1px solid var(--color-border);
+    border-radius: var(--radius-card);
+    background-color: var(--color-white);
+}
+
+.kartu-angka span {
+    font-size: 13px;
+    color: var(--color-muted);
+}
+
+.kartu-angka strong {
+    font-size: var(--text-heading-sm);
+    font-weight: 700;
+    letter-spacing: -0.03em;
+}
+
+@media (max-width: 991.98px) {
+    .statistik-grid {
+        grid-template-columns: repeat(2, 1fr);
+    }
+}
+
+/* Kotak catatan evaluasi yang sudah dipublikasikan (hanya dibaca) */
+.kotak-catatan {
+    min-height: 100px;
+    padding: var(--spacing-16);
+    border: 1px solid var(--color-border);
+    border-radius: var(--radius-card);
+    background-color: var(--color-ivory);
+    font-size: var(--text-body-sm);
+    line-height: 1.6;
+}
+
+/* Versi tiga kolom untuk ringkasan campaign dan "Perlu Ditindak" */
+.statistik-grid-3 {
+    grid-template-columns: repeat(3, 1fr);
+}
+
+@media (max-width: 767.98px) {
+    .statistik-grid-3 {
+        grid-template-columns: 1fr;
+    }
+}
+
+/* Kartu "Perlu Ditindak": label dan angka di kiri, tombol Lihat di kanan (wireframe Gambar 68) */
+.kartu-tugas {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 12px;
+    padding: var(--spacing-16);
+    border: 1px solid var(--color-border);
+    border-radius: var(--radius-card);
+    background-color: var(--color-white);
+}
+
+.kartu-tugas span {
+    display: block;
+    margin-bottom: 6px;
+    font-size: 13px;
+    color: var(--color-muted);
+}
+
+.kartu-tugas strong {
+    font-size: var(--text-heading-sm);
+    font-weight: 700;
+}
+
+/* Sel tabel berisi teks panjang (isi feedback) boleh turun ke baris baru */
+.tabel-aura td.sel-teks {
+    min-width: 280px;
+    white-space: normal;
+}

@@ -1,0 +1,220 @@
+/* Komponen yang dipakai berulang: tombol, kolom isian, pesan, panel, label status */
+
+/* ---------- Tombol (bentuk pil sesuai DESIGN.md) ---------- */
+.btn-aura {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: var(--spacing-8);
+    padding: 12px 20px;
+    border: 1px solid transparent;
+    border-radius: var(--radius-button);
+    font-family: var(--font-sans);
+    font-size: var(--text-body-sm);
+    font-weight: 500;
+    line-height: 1.2;
+    white-space: nowrap;
+    cursor: pointer;
+    transition: background-color 0.2s ease, color 0.2s ease, border-color 0.2s ease;
+}
+
+.btn-aura-primary {
+    background-color: var(--color-blush);
+    color: var(--color-charcoal);
+}
+
+.btn-aura-primary:hover {
+    background-color: var(--color-mocha);
+    color: var(--color-white);
+}
+
+.btn-aura-outline {
+    background-color: transparent;
+    border-color: var(--color-charcoal);
+    color: var(--color-charcoal);
+}
+
+.btn-aura-outline:hover {
+    border-color: var(--color-mocha);
+    background-color: var(--color-mocha);
+    color: var(--color-white);
+}
+
+.btn-aura-sm {
+    padding: 10px 18px;
+}
+
+.btn-aura-besar {
+    padding: 15px 24px;
+    font-size: var(--text-body);
+}
+
+.btn-aura:focus-visible,
+.tombol-mata:focus-visible {
+    outline: 2px solid var(--color-mocha);
+    outline-offset: 2px;
+}
+
+/* Tombol mati (tidak boleh diklik): kursor tanda dilarang */
+.btn-aura:disabled {
+    opacity: 0.6;
+    cursor: not-allowed;
+}
+
+/* Tombol yang sedang mengirim form: kursor loading.
+   Class ini dipasang oleh konfirmasi.js setelah pengguna menekan OK. */
+.btn-aura.is-mengirim {
+    cursor: wait;
+}
+
+/* ---------- Kolom isian ---------- */
+.field {
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+}
+
+.field-label {
+    font-size: 13px;
+    font-weight: 600;
+}
+
+.input-aura {
+    width: 100%;
+    height: 44px;
+    padding: 0 14px;
+    border: 1px solid var(--color-border);
+    border-radius: var(--radius-small);
+    background-color: var(--color-white);
+    font-family: var(--font-sans);
+    font-size: var(--text-body-sm);
+    color: var(--color-charcoal);
+    transition: border-color 0.2s ease;
+}
+
+textarea.input-aura {
+    height: auto;
+    padding: 10px 14px;
+    resize: vertical;
+}
+
+.input-aura::placeholder {
+    color: rgba(46, 46, 46, 0.4);
+}
+
+.input-aura:focus {
+    outline: none;
+    border-color: var(--color-mocha);
+}
+
+.input-aura.is-invalid {
+    border-color: var(--color-error);
+}
+
+.pesan-error {
+    margin: 0;
+    font-size: var(--text-caption);
+    color: var(--color-error);
+}
+
+.teks-bantuan {
+    margin: 0;
+    font-size: var(--text-caption);
+    color: var(--color-muted);
+}
+
+/* Kolom password dengan ikon mata di sisi kanan */
+.input-password {
+    position: relative;
+}
+
+.input-password .input-aura {
+    padding-right: 48px;
+}
+
+.tombol-mata {
+    position: absolute;
+    top: 50%;
+    right: 6px;
+    display: grid;
+    place-items: center;
+    width: 36px;
+    height: 36px;
+    padding: 0;
+    border: 0;
+    border-radius: 50%;
+    background: transparent;
+    color: var(--color-muted);
+    font-size: 18px;
+    transform: translateY(-50%);
+    cursor: pointer;
+}
+
+.tombol-mata:hover {
+    background-color: var(--color-ivory);
+    color: var(--color-charcoal);
+}
+
+/* ---------- Pesan sukses dan gagal ---------- */
+.alert-aura {
+    padding: 12px var(--spacing-16);
+    border: 1px solid var(--color-border);
+    border-radius: var(--radius-card);
+    font-size: var(--text-body-sm);
+}
+
+.alert-sukses {
+    border-color: var(--color-beige);
+    background-color: var(--color-beige);
+}
+
+.alert-gagal {
+    border-color: var(--color-error);
+    background-color: var(--color-white);
+    color: var(--color-error);
+}
+
+/* ---------- Panel ---------- */
+.panel-aura {
+    padding: var(--spacing-24);
+    border: 1px solid var(--color-border);
+    border-radius: var(--radius-card);
+    background-color: var(--color-white);
+}
+
+.judul-panel {
+    margin-bottom: 8px;
+    font-size: var(--text-subheading);
+    font-weight: 600;
+}
+
+/* ---------- Label status berbentuk pil ---------- */
+.badge-status {
+    display: inline-flex;
+    align-items: center;
+    flex: none;
+    padding: 6px 14px;
+    border: 1px solid transparent;
+    border-radius: var(--radius-badge);
+    background-color: var(--color-beige);
+    font-size: 13px;
+    font-weight: 600;
+    white-space: nowrap;
+}
+
+.badge-diverifikasi {
+    background-color: var(--color-blush);
+}
+
+.badge-ditolak {
+    border-color: var(--color-error);
+    background-color: transparent;
+    color: var(--color-error);
+}
+
+@media (prefers-reduced-motion: reduce) {
+    .btn-aura,
+    .input-aura {
+        transition: none;
+    }
+}

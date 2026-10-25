@@ -1,0 +1,175 @@
+/* =====================================================================
+   HALAMAN LOGIN DAN REGISTRASI
+   Wireframe: Gambar 66 (Registrasi) dan Gambar 67 (Login)
+   Dimuat oleh: resources/views/layouts/auth.blade.php (lewat @push('styles'))
+   Memakai variabel warna dan ukuran dari: public/css/variables.css
+   ===================================================================== */
+
+
+/* ---------------------------------------------------------------------
+   PEMBUNGKUS HALAMAN
+   Dipakai di: layouts/auth.blade.php  ->  <div class="auth-halaman">
+   Flexbox arah kolom: navbar di atas, area kartu di bawahnya.
+   min-height 100vh = setinggi layar, supaya area kartu bisa mengisi sisa layar.
+   --------------------------------------------------------------------- */
+.auth-halaman {
+    display: flex;
+    flex-direction: column;
+    min-height: 100vh;
+}
+
+
+/* ---------------------------------------------------------------------
+   NAVBAR
+   Dipakai di: layouts/auth.blade.php  ->  <header class="auth-navbar">
+   Wireframe: tinggi 80px, padding kiri-kanan 80px, garis bawah tipis.
+   justify-content: space-between = logo menempel kiri, tombol menempel kanan.
+   Tombolnya diisi dari halaman masing-masing lewat @section('tombol-navbar'):
+   login menampilkan "Daftar Influencer", registrasi menampilkan "Login".
+   --------------------------------------------------------------------- */
+.auth-navbar {
+    display: flex;
+    align-items: center;               /* logo dan tombol sejajar di tengah secara vertikal */
+    justify-content: space-between;
+    height: 80px;
+    padding: 0 var(--spacing-80);
+    border-bottom: 1px solid var(--color-border);
+    background-color: var(--color-ivory);
+}
+
+/* Tulisan "Aura Community" di kiri navbar (pengganti logo sementara) */
+.logo-teks {
+    font-size: var(--text-subheading);  /* 18px, sesuai ukuran logo di DESIGN.md */
+    font-weight: 600;
+    letter-spacing: -0.02em;
+}
+
+
+/* ---------------------------------------------------------------------
+   AREA KARTU
+   Dipakai di: layouts/auth.blade.php  ->  <main class="auth-wrap">
+   flex: 1 = mengisi semua sisa tinggi layar di bawah navbar.
+   justify-content: center = kartu berada di tengah secara horizontal.
+   align-items: flex-start = kartu mulai dari atas (untuk registrasi yang panjang).
+   --------------------------------------------------------------------- */
+.auth-wrap {
+    display: flex;
+    flex: 1;
+    justify-content: center;
+    align-items: flex-start;
+    padding: var(--spacing-48) var(--spacing-16) var(--spacing-64);
+}
+
+/* Versi untuk login: kartu juga di tengah secara vertikal (wireframe Gambar 67).
+   Class ini ditambahkan oleh login.blade.php lewat @section('posisi-form'). */
+.auth-wrap-tengah {
+    align-items: center;
+}
+
+
+/* ---------------------------------------------------------------------
+   KARTU FORMULIR
+   Dipakai di: login.blade.php dan register.blade.php  ->  <div class="auth-card">
+   Gaya kartu dari DESIGN.md: latar putih, garis tipis, sudut 16px, TANPA bayangan.
+   width 100% + max-width = kartu menyusut di HP, tetapi tidak lebih lebar dari wireframe.
+   --------------------------------------------------------------------- */
+.auth-card {
+    display: flex;
+    flex-direction: column;
+    gap: var(--spacing-24);            /* jarak antara judul, formulir, dan footer kartu */
+    width: 100%;
+    max-width: 600px;                  /* lebar kartu login di wireframe */
+    padding: 56px;                     /* padding kartu login di wireframe */
+    border: 1px solid var(--color-border);
+    border-radius: var(--radius-card); /* 16px */
+    background-color: var(--color-white);
+}
+
+/* Kartu registrasi lebih lebar karena kolomnya dua-dua (wireframe Gambar 66).
+   Dipakai bersamaan: <div class="auth-card auth-card-lebar"> */
+.auth-card-lebar {
+    max-width: 800px;
+    padding: 36px;
+}
+
+
+/* ---------------------------------------------------------------------
+   JUDUL KARTU
+   Dipakai di: <div class="auth-head"> berisi <h1> dan <p>
+   --------------------------------------------------------------------- */
+.auth-head {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+}
+
+.auth-head h1 {
+    font-size: var(--text-heading);    /* 32px */
+    font-weight: 700;
+}
+
+.auth-head p {
+    margin: 0;
+    font-size: var(--text-body);
+    color: var(--color-muted);         /* abu-abu dari charcoal, untuk teks pendukung */
+}
+
+
+/* ---------------------------------------------------------------------
+   FORMULIR
+   Dipakai di: <form class="auth-form">
+   gap = jarak antar kolom isian (Email, Password, dan seterusnya).
+   Kolom isiannya sendiri (.field, .input-aura) diatur di components.css.
+   --------------------------------------------------------------------- */
+.auth-form {
+    display: flex;
+    flex-direction: column;
+    gap: 20px;
+}
+
+/* Tulisan kecil "DATA DIRI" dan "AKUN MEDIA SOSIAL" di form registrasi */
+.label-kelompok {
+    margin: 0;
+    font-size: var(--text-caption);    /* 12px */
+    font-weight: 600;
+    letter-spacing: 0.06em;            /* teks kapital kecil dibuat sedikit renggang supaya mudah dibaca */
+    text-transform: uppercase;
+    color: var(--color-muted);
+}
+
+/* Tulisan "Instagram" dan "TikTok" di atas kolom akun media sosial.
+   margin-bottom negatif mendekatkannya ke kolom di bawahnya. */
+.sub-platform {
+    margin: 4px 0 -8px;
+    font-size: var(--text-body-sm);
+    font-weight: 600;
+}
+
+
+/* ---------------------------------------------------------------------
+   FOOTER KARTU
+   Dipakai di: <p class="auth-foot">Belum punya akun? <a class="tautan">...</a></p>
+   Gaya tautan (.tautan) diatur di base.css.
+   --------------------------------------------------------------------- */
+.auth-foot {
+    margin: 0;
+    text-align: center;
+    font-size: var(--text-body-sm);
+    color: var(--color-muted);
+}
+
+
+/* ---------------------------------------------------------------------
+   LAYAR KECIL (HP dan tablet, di bawah 768px)
+   Padding diperkecil supaya formulir tidak terlalu sempit.
+   --------------------------------------------------------------------- */
+@media (max-width: 767.98px) {
+    .auth-navbar {
+        padding: 0 var(--spacing-16);
+    }
+
+    .auth-card,
+    .auth-card-lebar {
+        padding: var(--spacing-24);
+    }
+}
