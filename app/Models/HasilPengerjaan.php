@@ -13,11 +13,11 @@ class HasilPengerjaan extends ModelAura
     protected $primaryKey = 'idHasil';
 
     // $fillable = daftar kolom yang BOLEH diisi lewat create()/update().
-    // Kolom yang tidak ada di sini akan diabaikan Laravel tanpa error.
     protected $fillable = [
         'idPendaftaran', 'idAkun', 'draftKonten', 'tanggalPengirimanDraft',
         'linkKonten', 'fileInsight', 'jumlahViews', 'jumlahLikes', 'jumlahKomentar',
-        'jumlahPengikut', // pengikut akun saat insight dikirim (Tabel 38)
+        'jumlahShare', 'jumlahSave', // interaksi tambahan untuk engagement rate
+        'jumlahPengikut',            // pengikut akun saat insight dikirim
         'tanggalPengirimanInsight', 'statusDraft', 'statusInsight',
     ];
 
@@ -44,10 +44,12 @@ class HasilPengerjaan extends ModelAura
         return $this->hasMany(Feedback::class, 'idHasil');
     }
 
-    // ER satu konten (Bab 2.1.4), memakai rumus yang sama dengan laporan (RekapCampaign::hitungEr)
+    // ER satu konten: (likes + komentar + share + save) / views x 100%
     public function engagementRate(): ?float
     {
-        return RekapCampaign::hitungEr($this->jumlahLikes, $this->jumlahKomentar, $this->jumlahViews);
+        return RekapCampaign::hitungEr(
+            $this->jumlahLikes, $this->jumlahKomentar, $this->jumlahShare, $this->jumlahSave, $this->jumlahViews
+        );
     }
 
     // View rate satu konten. Null kalau data pengikut belum ada.

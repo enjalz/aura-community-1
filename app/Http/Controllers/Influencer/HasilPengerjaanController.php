@@ -104,6 +104,7 @@ class HasilPengerjaanController extends Controller
     }
 
     // Tabel 22: mengirim link konten yang sudah tayang, tangkapan layar insight, dan angka metrik
+        // Tabel 22: mengirim link konten yang sudah tayang, tangkapan layar insight, dan angka metrik
     public function kirimInsight(Request $request, HasilPengerjaan $hasil): RedirectResponse
     {
         $influencer = $request->user()->influencer;
@@ -127,6 +128,9 @@ class HasilPengerjaanController extends Controller
                 'jumlahViews' => ['required', 'integer', 'min:0', 'max:2147483647'],
                 'jumlahLikes' => ['required', 'integer', 'min:0', 'max:2147483647'],
                 'jumlahKomentar' => ['required', 'integer', 'min:0', 'max:2147483647'],
+                // TAMBAHAN: share dan save ikut dihitung di engagement rate. Boleh 0.
+                'jumlahShare' => ['required', 'integer', 'min:0', 'max:2147483647'],
+                'jumlahSave' => ['required', 'integer', 'min:0', 'max:2147483647'],
                 'jumlahPengikut' => ['required', 'integer', 'min:1', 'max:2147483647'],
             ],
             [
@@ -145,6 +149,8 @@ class HasilPengerjaanController extends Controller
                 'jumlahViews' => 'Jumlah Views',
                 'jumlahLikes' => 'Jumlah Likes',
                 'jumlahKomentar' => 'Jumlah Komentar',
+                'jumlahShare' => 'Jumlah Share',
+                'jumlahSave' => 'Jumlah Save',
                 'jumlahPengikut' => 'Jumlah Pengikut',
             ]
         );
@@ -157,6 +163,8 @@ class HasilPengerjaanController extends Controller
             'jumlahViews' => $data['jumlahViews'],
             'jumlahLikes' => $data['jumlahLikes'],
             'jumlahKomentar' => $data['jumlahKomentar'],
+            'jumlahShare' => $data['jumlahShare'],
+            'jumlahSave' => $data['jumlahSave'],
             'jumlahPengikut' => $data['jumlahPengikut'],
             'tanggalPengirimanInsight' => now()->toDateString(),
             'statusInsight' => 'menunggu',

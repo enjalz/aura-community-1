@@ -95,6 +95,8 @@
                         <div class="kotak-angka"><span>Views</span><strong>{{ number_format((int) $terpilih->jumlahViews, 0, ',', '.') }}</strong></div>
                         <div class="kotak-angka"><span>Likes</span><strong>{{ number_format((int) $terpilih->jumlahLikes, 0, ',', '.') }}</strong></div>
                         <div class="kotak-angka"><span>Komentar</span><strong>{{ number_format((int) $terpilih->jumlahKomentar, 0, ',', '.') }}</strong></div>
+                        <div class="kotak-angka"><span>Share</span><strong>{{ $terpilih->jumlahShare !== null ? number_format($terpilih->jumlahShare, 0, ',', '.') : '-' }}</strong></div>
+                        <div class="kotak-angka"><span>Save</span><strong>{{ $terpilih->jumlahSave !== null ? number_format($terpilih->jumlahSave, 0, ',', '.') : '-' }}</strong></div>
                         <div class="kotak-angka"><span>Pengikut</span><strong>{{ $terpilih->jumlahPengikut !== null ? number_format($terpilih->jumlahPengikut, 0, ',', '.') : '-' }}</strong></div>
                     </div>
 

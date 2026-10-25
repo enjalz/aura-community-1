@@ -1,15 +1,11 @@
-{{-- Isi laporan yang sama untuk Admin dan Owner Brand (Tabel 25, Bab 2.1.4):
+{{-- Isi laporan yang sama untuk Admin dan Owner Brand:
      ringkasan statistik, ringkasan engagement, performa per influencer, dan rincian konten.
-     Dipanggil dengan @include('partials.laporan-performa').
      Variabel dari controller: $ringkasan, $performa, $rincian --}}
 @php
-    // Format persen gaya Indonesia, contoh 7,55%. Tanda "-" kalau tidak bisa dihitung.
     $persen = fn (?float $nilai) => $nilai !== null ? number_format($nilai, 2, ',', '.') . '%' : '-';
-    // Format angka ribuan, contoh 18.400. Tanda "-" kalau kosong (data lama tanpa pengikut).
     $angka = fn ($nilai) => $nilai !== null ? number_format((int) $nilai, 0, ',', '.') : '-';
 @endphp
 
-{{-- Tabel 25 langkah 3: statistik diakumulasi otomatis --}}
 <p class="label-grup">Ringkasan Statistik</p>
 <x-kartu-statistik :ringkasan="$ringkasan" />
 
@@ -28,8 +24,10 @@
         <strong>{{ $persen($performa['rataRataViewRate']) }}</strong>
     </div>
 </div>
+<p class="teks-bantuan">
+    Total share {{ $angka($ringkasan['share']) }} dan total save {{ $angka($ringkasan['save']) }}.
+</p>
 
-{{-- Performa per influencer, ER tertinggi di atas --}}
 <p class="label-grup">Performa per Influencer</p>
 @if ($performa['perInfluencer']->isEmpty())
     <div class="kosong">Belum ada insight yang disetujui untuk campaign ini.</div>
@@ -48,6 +46,8 @@
                     <th scope="col">Views</th>
                     <th scope="col">Likes</th>
                     <th scope="col">Komentar</th>
+                    <th scope="col">Share</th>
+                    <th scope="col">Save</th>
                     <th scope="col">ER</th>
                     <th scope="col">Performa</th>
                 </tr>
@@ -61,6 +61,8 @@
                         <td>{{ $angka($baris->views) }}</td>
                         <td>{{ $angka($baris->likes) }}</td>
                         <td>{{ $angka($baris->komentar) }}</td>
+                        <td>{{ $angka($baris->share) }}</td>
+                        <td>{{ $angka($baris->save) }}</td>
                         <td>{{ $persen($baris->er) }}</td>
                         <td>
                             @if ($baris->label === 'di_atas')
@@ -78,7 +80,6 @@
     </div>
 @endif
 
-{{-- Rincian setiap konten beserta tautannya (Tabel 25 langkah 7) --}}
 <p class="label-grup">Rincian Konten ({{ $ringkasan['konten'] }})</p>
 @if ($rincian->isEmpty())
     <div class="kosong">Belum ada konten dengan insight yang disetujui.</div>
@@ -94,6 +95,8 @@
                     <th scope="col">Views</th>
                     <th scope="col">Likes</th>
                     <th scope="col">Komentar</th>
+                    <th scope="col">Share</th>
+                    <th scope="col">Save</th>
                     <th scope="col">ER</th>
                     <th scope="col">View Rate</th>
                 </tr>
@@ -104,7 +107,6 @@
                         <td>{{ $hasil->pendaftaran->influencer->pengguna->nama }}</td>
                         <td>{{ $hasil->akunSosmed->platform }} - &#64;{{ $hasil->akunSosmed->username }}</td>
                         <td>
-                            {{-- Keamanan: tautan hanya aktif kalau diawali http:// atau https:// --}}
                             @if (\Illuminate\Support\Str::startsWith($hasil->linkKonten, ['https://', 'http://']))
                                 <a class="tautan" href="{{ $hasil->linkKonten }}" target="_blank" rel="noopener noreferrer">Buka Konten</a>
                             @else
@@ -115,6 +117,8 @@
                         <td>{{ $angka($hasil->jumlahViews) }}</td>
                         <td>{{ $angka($hasil->jumlahLikes) }}</td>
                         <td>{{ $angka($hasil->jumlahKomentar) }}</td>
+                        <td>{{ $angka($hasil->jumlahShare) }}</td>
+                        <td>{{ $angka($hasil->jumlahSave) }}</td>
                         <td>{{ $persen($hasil->engagementRate()) }}</td>
                         <td>{{ $persen($hasil->viewRate()) }}</td>
                     </tr>
@@ -127,7 +131,7 @@
 @endif
 
 <div class="catatan">
-    Engagement Rate (ER) = (Likes + Komentar) / Views × 100%. ER per influencer dihitung dari total seluruh kontennya.<br>
+    Engagement Rate (ER) = (Likes + Komentar + Share + Save) / Views × 100%. ER per influencer dihitung dari total seluruh kontennya.<br>
     View Rate = Views / Pengikut saat insight dikirim × 100%.<br>
     Performa ditentukan dengan membandingkan ER influencer terhadap rata-rata ER campaign.
 </div>

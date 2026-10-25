@@ -174,7 +174,9 @@
                                 <div class="col-4"><x-input name="jumlahViews" label="Jumlah Views" type="number" min="0" :value="$hasil->jumlahViews" placeholder="0" /></div>
                                 <div class="col-4"><x-input name="jumlahLikes" label="Jumlah Likes" type="number" min="0" :value="$hasil->jumlahLikes" placeholder="0" /></div>
                                 <div class="col-4"><x-input name="jumlahKomentar" label="Jumlah Komentar" type="number" min="0" :value="$hasil->jumlahKomentar" placeholder="0" /></div>
-                                <div class="col-6"><x-input name="jumlahPengikut" label="Jumlah Pengikut Saat Ini" type="number" min="1" :value="$hasil->jumlahPengikut ?? $terpilih->akun?->jumlahPengikut" placeholder="0" /></div>
+                                <div class="col-4"><x-input name="jumlahShare" label="Jumlah Share" type="number" min="0" :value="$hasil->jumlahShare" placeholder="0" /></div>
+                                <div class="col-4"><x-input name="jumlahSave" label="Jumlah Save" type="number" min="0" :value="$hasil->jumlahSave" placeholder="0" /></div>
+                                <div class="col-4"><x-input name="jumlahPengikut" label="Jumlah Pengikut Saat Ini" type="number" min="1" :value="$hasil->jumlahPengikut ?? $terpilih->akun?->jumlahPengikut" placeholder="0" /></div>
                             </div>
 
                             <p class="teks-bantuan">Isi jumlah pengikut akun {{ $terpilih->platform }} sesuai kondisi saat insight dikirim.</p>
@@ -192,10 +194,12 @@
                                 <a class="tautan" href="{{ route('berkas.hasil', [$hasil, 'insight']) }}" target="_blank" rel="noopener">Lihat tangkapan layar</a>
                             </div>
                         </div>
-                        <div class="metrik">
+                                                <div class="metrik">
                             <div class="kotak-angka"><span>Views</span><strong>{{ number_format($hasil->jumlahViews, 0, ',', '.') }}</strong></div>
                             <div class="kotak-angka"><span>Likes</span><strong>{{ number_format($hasil->jumlahLikes, 0, ',', '.') }}</strong></div>
                             <div class="kotak-angka"><span>Komentar</span><strong>{{ number_format($hasil->jumlahKomentar, 0, ',', '.') }}</strong></div>
+                            <div class="kotak-angka"><span>Share</span><strong>{{ $hasil->jumlahShare !== null ? number_format($hasil->jumlahShare, 0, ',', '.') : '-' }}</strong></div>
+                            <div class="kotak-angka"><span>Save</span><strong>{{ $hasil->jumlahSave !== null ? number_format($hasil->jumlahSave, 0, ',', '.') : '-' }}</strong></div>
                             <div class="kotak-angka"><span>Pengikut</span><strong>{{ $hasil->jumlahPengikut !== null ? number_format($hasil->jumlahPengikut, 0, ',', '.') : '-' }}</strong></div>
                         </div>
                         <p class="teks-bantuan">
