@@ -1,6 +1,7 @@
 {{-- Detail Campaign (Tabel 14 "melihat").
      Atas: Informasi Campaign dan Ketentuan Platform (susunan wireframe Gambar 83).
-     Bawah: Owner Brand yang punya akses (Tabel 15) dan daftar pendaftar (Batasan 7). --}}
+     Bawah: Owner Brand yang punya akses (Tabel 15) dan daftar pendaftar beserta data seleksi
+     (subbab 2.1.4: kecocokan, ER, view rate, label perlu diperiksa, estimasi jangkauan). --}}
 @extends('layouts.dashboard')
 
 @section('title', $campaign->namaCampaign . ' - Aura Community')
@@ -43,9 +44,19 @@
                 <div class="daftar-data-baris"><dt>Target Audiens</dt><dd>{{ $campaign->targetAudiens }}</dd></div>
                 <div class="daftar-data-baris"><dt>Kategori Influencer</dt><dd>{{ $campaign->kategoriInfluencer }}</dd></div>
                 <div class="daftar-data-baris"><dt>Lokasi Campaign</dt><dd>{{ $campaign->lokasiCampaign }}</dd></div>
+                <div class="daftar-data-baris"><dt>Target Usia Audiens</dt><dd>{{ $campaign->targetUsia ? config('aura.rentangUsia.' . $campaign->targetUsia) : 'Semua usia' }}</dd></div>
+                <div class="daftar-data-baris"><dt>Minimal Pengikut</dt><dd>{{ number_format($campaign->minimalPengikut, 0, ',', '.') }}</dd></div>
                 <div class="daftar-data-baris"><dt>Periode</dt><dd>{{ $campaign->tanggalMulai->format('d/m/Y') }} - {{ $campaign->tanggalSelesai->format('d/m/Y') }}</dd></div>
+                <div class="daftar-data-baris"><dt>Periode Unggah</dt><dd>{{ $campaign->periodeUnggah() ?? '-' }}</dd></div>
                 <div class="daftar-data-baris"><dt>Fee per Influencer</dt><dd><x-rupiah :nilai="$campaign->feePerInfluencer" /></dd></div>
                 <div class="daftar-data-baris"><dt>Kuota Influencer</dt><dd>{{ $jumlahDiterima }} diterima dari kuota {{ $campaign->kuotaInfluencer }}</dd></div>
+                <div class="daftar-data-baris">
+                    <dt>Estimasi Jangkauan</dt>
+                    <dd>
+                        {{ $estimasiCampaign !== null ? number_format($estimasiCampaign, 0, ',', '.') . ' tayangan' : 'Belum dapat dihitung' }}
+                        <span class="teks-redup">(dari influencer yang diterima)</span>
+                    </dd>
+                </div>
                 <div class="daftar-data-baris">
                     <dt>Status</dt>
                     <dd><span class="badge-status badge-{{ $campaign->statusCampaign }}">{{ config('aura.statusCampaign.' . $campaign->statusCampaign) }}</span></dd>
@@ -100,6 +111,11 @@
     {{-- ===== PENDAFTAR ===== --}}
     <section>
         <h2 class="judul-bagian">Pendaftar ({{ $campaign->pendaftaran->count() }})</h2>
+        <p class="teks-bantuan">
+            ER, view rate, dan estimasi dihitung dari insight campaign sebelumnya yang telah disetujui.
+            Label <strong>Perlu diperiksa</strong> muncul jika view rate kurang dari {{ config('aura.seleksi.ambangViewRate') }}%
+            rata-rata akun lain pada platform dan rentang pengikut yang sama.
+        </p>
 
         @if ($campaign->pendaftaran->isEmpty())
             <div class="kosong">Belum ada influencer yang mendaftar campaign ini.</div>
@@ -109,29 +125,72 @@
                     <thead>
                         <tr>
                             <th scope="col">Influencer</th>
-                            <th scope="col">Kategori</th>
-                            <th scope="col">Pengikut</th>
-                            <th scope="col">Tanggal Daftar</th>
+                            <th scope="col">Akun dan Demografi</th>
+                            <th scope="col">Kecocokan</th>
+                            <th scope="col">ER</th>
+                            <th scope="col">View Rate</th>
+                            <th scope="col">Estimasi</th>
                             <th scope="col">Status</th>
                             <th scope="col" class="kolom-aksi">Aksi</th>
                         </tr>
                     </thead>
                     <tbody>
                         @foreach ($campaign->pendaftaran as $pendaftaran)
-                            @php($influencer = $pendaftaran->influencer)
+                            @php
+                                $influencer = $pendaftaran->influencer;
+                                $baris = $seleksi[$pendaftaran->idPendaftaran];
+                                $cocok = $baris->kecocokan;
+                                $tidakCocok = collect($cocok['rincian'])->reject(fn ($sesuai) => $sesuai)->keys();
+                            @endphp
                             <tr>
                                 <td>
-                                    <a class="tautan" href="{{ route('admin.influencer.detail', $influencer) }}">{{ $influencer->pengguna->nama }}</a>
+                                    <a class="tautan" href="{{ route('admin.influencer.detail', $influencer) }}">{{ $baris->nama }}</a>
+                                    <div class="teks-redup">{{ $influencer->kategori }} · {{ $pendaftaran->tanggalPendaftaran->format('d/m/Y') }}</div>
                                     @if ($influencer->statusBlacklist)
                                         <span class="badge-status badge-blacklist">Blacklist</span>
                                     @endif
+                                    @if ($baris->perluDiperiksa)
+                                        <span class="badge-status badge-ditolak">Perlu diperiksa</span>
+                                    @endif
                                 </td>
-                                <td>{{ $influencer->kategori }}</td>
                                 <td>
-                                    {{-- Contoh: Instagram 45.200 · TikTok 81.000 --}}
-                                    {{ $influencer->akunSosmed->map(fn ($akun) => $akun->platform . ' ' . number_format($akun->jumlahPengikut, 0, ',', '.'))->join(' · ') }}
+                                    @foreach ($baris->akun as $akun)
+                                        <div @class(['mt-2' => ! $loop->first])>
+                                            {{ $akun->platform }} {{ number_format($akun->jumlahPengikut, 0, ',', '.') }}
+                                            @if (\Illuminate\Support\Str::startsWith($akun->linkProfil, ['https://', 'http://']))
+                                                · <a class="tautan" href="{{ $akun->linkProfil }}" target="_blank" rel="noopener noreferrer">profil</a>
+                                            @endif
+                                            @if ($akun->fileDemografi)
+                                                · <a class="tautan" href="{{ route('berkas.demografi', $akun) }}" target="_blank" rel="noopener noreferrer">insight audiens</a>
+                                            @endif
+                                            <div class="teks-redup">
+                                                {{ $akun->domisiliAudiens ?? '-' }}
+                                                · {{ $akun->usiaDominan ? config('aura.rentangUsia.' . $akun->usiaDominan) : '-' }}
+                                                · {{ $akun->genderDominan ? config('aura.genderAudiens.' . $akun->genderDominan) : '-' }}
+                                            </div>
+                                        </div>
+                                    @endforeach
                                 </td>
-                                <td>{{ $pendaftaran->tanggalPendaftaran->format('d/m/Y') }}</td>
+                                <td>
+                                    <span @class([
+                                        'badge-status',
+                                        'badge-diterima' => $cocok['skor'] === $cocok['maks'],
+                                        'badge-menunggu' => $cocok['skor'] < $cocok['maks'] && $cocok['skor'] >= 2,
+                                        'badge-ditolak' => $cocok['skor'] < 2,
+                                    ])>{{ $cocok['skor'] }}/{{ $cocok['maks'] }}</span>
+                                    @if ($tidakCocok->isNotEmpty())
+                                        <div class="teks-redup">Tidak sesuai: {{ $tidakCocok->join(', ') }}</div>
+                                    @endif
+                                </td>
+                                <td>{{ $baris->er !== null ? number_format($baris->er, 2, ',', '.') . '%' : '-' }}</td>
+                                <td>{{ $baris->viewRate !== null ? number_format($baris->viewRate, 2, ',', '.') . '%' : '-' }}</td>
+                                <td>
+                                    @if ($baris->estimasi !== null)
+                                        {{ number_format($baris->estimasi, 0, ',', '.') }}
+                                    @else
+                                        <span class="teks-redup">Belum ada riwayat</span>
+                                    @endif
+                                </td>
                                 <td>
                                     <span class="badge-status badge-{{ $pendaftaran->statusPendaftaran }}">
                                         {{ config('aura.statusPendaftaran.' . $pendaftaran->statusPendaftaran) }}
@@ -141,12 +200,12 @@
                                     @if ($pendaftaran->statusPendaftaran === 'menunggu')
                                         <div class="aksi-baris">
                                             <form method="POST" action="{{ route('admin.campaign.pendaftar.terima', [$campaign, $pendaftaran]) }}" class="form-sebaris"
-                                                  data-konfirmasi="Terima {{ $influencer->pengguna->nama }} di campaign ini?">
+                                                  data-konfirmasi="Terima {{ $baris->nama }} di campaign ini?">
                                                 @csrf
                                                 <button type="submit" class="btn-aura btn-aura-primary btn-aura-sm">Terima</button>
                                             </form>
                                             <form method="POST" action="{{ route('admin.campaign.pendaftar.tolak', [$campaign, $pendaftaran]) }}" class="form-sebaris"
-                                                  data-konfirmasi="Tolak pendaftaran {{ $influencer->pengguna->nama }}?">
+                                                  data-konfirmasi="Tolak pendaftaran {{ $baris->nama }}?">
                                                 @csrf
                                                 <button type="submit" class="btn-aura btn-aura-outline btn-aura-sm">Tolak</button>
                                             </form>

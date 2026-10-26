@@ -1,5 +1,6 @@
 {{-- Form Tambah dan Ubah Campaign (Tabel 14).
-     Kiri: Informasi Campaign (Tabel 33). Kanan: Ketentuan Platform (Tabel 34), minimal satu baris.
+     Kiri: Informasi Campaign (Tabel 33), termasuk target seleksi dan periode unggah.
+     Kanan: Ketentuan Platform (Tabel 34), minimal satu baris.
      $campaign = null saat Tambah, berisi data saat Ubah. --}}
 @extends('layouts.dashboard')
 
@@ -74,6 +75,24 @@
                             <x-input name="lokasiCampaign" label="Lokasi Campaign" :value="$campaign?->lokasiCampaign" placeholder="Contoh: Jakarta atau Nasional" />
                         </div>
                         <div class="col-md-6">
+                            <div class="field">
+                                <label for="targetUsia" class="field-label">Target Usia Audiens</label>
+                                <select id="targetUsia" name="targetUsia" @class(['input-aura', 'is-invalid' => $errors->has('targetUsia')])>
+                                    <option value="" @selected(! old('targetUsia', $campaign?->targetUsia))>Semua usia</option>
+                                    @foreach (config('aura.rentangUsia') as $nilai => $label)
+                                        <option value="{{ $nilai }}" @selected(old('targetUsia', $campaign?->targetUsia) === (string) $nilai)>{{ $label }}</option>
+                                    @endforeach
+                                </select>
+                                @error('targetUsia')
+                                    <p class="pesan-error">{{ $message }}</p>
+                                @enderror
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <x-input name="minimalPengikut" label="Minimal Pengikut" type="number" min="0"
+                                     :value="$campaign?->minimalPengikut ?? 0" placeholder="Contoh: 5000" />
+                        </div>
+                        <div class="col-md-6">
                             <x-input name="feePerInfluencer" label="Fee per Influencer (Rp)" type="number" min="0" step="1000"
                                      :value="$ubah ? (int) $campaign->feePerInfluencer : null" placeholder="Contoh: 150000" />
                         </div>
@@ -82,6 +101,18 @@
                         </div>
                         <div class="col-md-6">
                             <x-input name="tanggalSelesai" label="Tanggal Selesai" type="date" :value="$campaign?->tanggalSelesai?->format('Y-m-d')" />
+                        </div>
+                        <div class="col-md-6">
+                            <x-input name="tanggalUnggahMulai" label="Tanggal Unggah Mulai" type="date" :value="$campaign?->tanggalUnggahMulai?->format('Y-m-d')" />
+                        </div>
+                        <div class="col-md-6">
+                            <x-input name="tanggalUnggahSelesai" label="Tanggal Unggah Selesai" type="date" :value="$campaign?->tanggalUnggahSelesai?->format('Y-m-d')" />
+                        </div>
+                        <div class="col-12">
+                            <p class="teks-bantuan">
+                                Rentang tanggal influencer wajib mengunggah konten. Isi tanggal yang sama jika unggahan harus serempak di satu hari.
+                                Link dan insight wajib dikirim paling lambat pada Tanggal Selesai campaign.
+                            </p>
                         </div>
                         <div class="col-md-6">
                             <x-input name="kuotaInfluencer" label="Kuota Influencer" type="number" min="1" :value="$campaign?->kuotaInfluencer" placeholder="Contoh: 50" />

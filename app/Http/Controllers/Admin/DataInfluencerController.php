@@ -4,9 +4,9 @@ namespace App\Http\Controllers\Admin;
 
 use App\Http\Controllers\Controller;
 use App\Http\Requests\Admin\InfluencerRequest;
-use App\Models\AkunSosmed;
 use App\Models\Influencer;
 use App\Models\Pengguna;
+use App\Services\BlacklistOtomatis;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
@@ -18,8 +18,13 @@ class DataInfluencerController extends Controller
     private const PER_HALAMAN = 10;
 
     // Daftar influencer terverifikasi, dengan pencarian dan filter (wireframe Gambar 70)
-    public function index(Request $request): View
+    public function index(Request $request, BlacklistOtomatis $blacklist): View
     {
+        // Blacklist otomatis (Tabel 11, alternative scenario tambahan)
+        if ($jumlah = $blacklist->jalankan()) {
+            session()->now('sukses', "{$jumlah} influencer otomatis dimasukkan ke blacklist karena tidak mengirim konten hingga campaign berakhir.");
+        }
+
         $cari = trim((string) $request->query('cari'));
         $kategori = $request->query('kategori');
         $status = $request->query('status');
@@ -77,13 +82,13 @@ class DataInfluencerController extends Controller
                 'statusAkun' => 'aktif',
             ]);
 
-            Influencer::create([
+            $influencer = Influencer::create([
                 'idPengguna' => $pengguna->idPengguna,
                 'kategori' => $data['kategori'],
                 'statusVerifikasi' => 'diverifikasi',
             ]);
 
-            $this->simpanAkunSosmed($pengguna->idPengguna, $data);
+            $influencer->simpanAkunSosmed($data);
         });
 
         return redirect()->route('admin.influencer')
@@ -129,7 +134,7 @@ class DataInfluencerController extends Controller
             $pengguna->save();
             $influencer->update(['kategori' => $data['kategori']]);
 
-            $this->simpanAkunSosmed($influencer->idPengguna, $data);
+            $influencer->simpanAkunSosmed($data);
         });
 
         return redirect()->route('admin.influencer.detail', $influencer)
@@ -178,7 +183,7 @@ class DataInfluencerController extends Controller
             ->with('sukses', "{$influencer->pengguna->nama} berhasil dimasukkan ke daftar blacklist.");
     }
 
-        // Alternative scenario Tabel 11 (tambahan): mencabut status blacklist.
+    // Alternative scenario Tabel 11 (tambahan): mencabut status blacklist.
     // Alasan dan tanggal dikosongkan, karena tabel Influencer hanya menyimpan satu status blacklist.
     public function cabutBlacklist(Influencer $influencer): RedirectResponse
     {
@@ -197,26 +202,5 @@ class DataInfluencerController extends Controller
 
         return redirect()->route('admin.influencer.detail', $influencer)
             ->with('sukses', "Status blacklist {$influencer->pengguna->nama} berhasil dicabut.");
-    }
-
-    // Menyimpan akun Instagram dan TikTok.
-    // Diisi = dibuat baru atau diperbarui. Dikosongkan = dihapus.
-    private function simpanAkunSosmed(int $idPengguna, array $data): void
-    {
-        foreach (config('aura.platform') as $kunci => $nama) {
-            $kondisi = ['idPengguna' => $idPengguna, 'platform' => $nama];
-
-            if (empty($data["{$kunci}_username"])) {
-                AkunSosmed::where($kondisi)->delete();
-                continue;
-            }
-
-            // updateOrCreate: cari akun dengan kondisi ini; kalau ada diperbarui, kalau tidak ada dibuat
-            AkunSosmed::updateOrCreate($kondisi, [
-                'username' => $data["{$kunci}_username"],
-                'linkProfil' => $data["{$kunci}_link"],
-                'jumlahPengikut' => $data["{$kunci}_pengikut"],
-            ]);
-        }
     }
 }

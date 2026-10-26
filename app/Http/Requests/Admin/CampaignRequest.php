@@ -23,9 +23,16 @@ class CampaignRequest extends FormRequest
             'targetAudiens' => ['required', 'string', 'max:100'],
             'kategoriInfluencer' => ['required', Rule::in(config('aura.kategori'))],
             'lokasiCampaign' => ['required', 'string', 'max:100'],
+            'targetUsia' => ['nullable', Rule::in(array_keys(config('aura.rentangUsia')))],
+            'minimalPengikut' => ['required', 'integer', 'min:0', 'max:2147483647'],
             'feePerInfluencer' => ['required', 'numeric', 'min:0', 'max:9999999999'],
             'tanggalMulai' => ['required', 'date'],
             'tanggalSelesai' => ['required', 'date', 'after_or_equal:tanggalMulai'],
+
+            // Periode unggah harus di dalam periode campaign. Tanggal sama = unggah serempak satu hari.
+            'tanggalUnggahMulai' => ['required', 'date', 'after_or_equal:tanggalMulai', 'before_or_equal:tanggalSelesai'],
+            'tanggalUnggahSelesai' => ['required', 'date', 'after_or_equal:tanggalUnggahMulai', 'before_or_equal:tanggalSelesai'],
+
             'statusCampaign' => ['required', Rule::in(array_keys(config('aura.statusCampaign')))],
             'kuotaInfluencer' => ['required', 'integer', 'min:1', 'max:100000'],
 
@@ -68,6 +75,10 @@ class CampaignRequest extends FormRequest
             'min.numeric' => ':attribute minimal :min.',
             'date' => ':attribute bukan tanggal yang valid.',
             'tanggalSelesai.after_or_equal' => 'Tanggal Selesai tidak boleh sebelum Tanggal Mulai.',
+            'tanggalUnggahMulai.after_or_equal' => 'Tanggal Unggah Mulai tidak boleh sebelum Tanggal Mulai campaign.',
+            'tanggalUnggahMulai.before_or_equal' => 'Tanggal Unggah Mulai tidak boleh setelah Tanggal Selesai campaign.',
+            'tanggalUnggahSelesai.after_or_equal' => 'Tanggal Unggah Selesai tidak boleh sebelum Tanggal Unggah Mulai.',
+            'tanggalUnggahSelesai.before_or_equal' => 'Tanggal Unggah Selesai tidak boleh setelah Tanggal Selesai campaign.',
             'ketentuan.required' => 'Tambahkan minimal satu ketentuan platform.',
         ];
     }
@@ -80,9 +91,13 @@ class CampaignRequest extends FormRequest
             'targetAudiens' => 'Target Audiens',
             'kategoriInfluencer' => 'Kategori Influencer',
             'lokasiCampaign' => 'Lokasi Campaign',
+            'targetUsia' => 'Target Usia',
+            'minimalPengikut' => 'Minimal Pengikut',
             'feePerInfluencer' => 'Fee per Influencer',
             'tanggalMulai' => 'Tanggal Mulai',
             'tanggalSelesai' => 'Tanggal Selesai',
+            'tanggalUnggahMulai' => 'Tanggal Unggah Mulai',
+            'tanggalUnggahSelesai' => 'Tanggal Unggah Selesai',
             'statusCampaign' => 'Status',
             'kuotaInfluencer' => 'Kuota Influencer',
             'ketentuan.*.platform' => 'Platform',

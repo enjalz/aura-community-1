@@ -92,6 +92,36 @@
     transition: border-color 0.2s ease;
 }
 
+/* Input file (screenshot insight audiens): tombol di tengah secara vertikal */
+input[type="file"].input-aura {
+    height: auto;
+    padding: 6px 6px 6px 6px;
+    color: var(--color-muted);
+    cursor: pointer;
+}
+
+/* Tombol "Choose File" mengikuti gaya .btn-aura-outline */
+input[type="file"].input-aura::file-selector-button {
+    margin-right: 12px;
+    padding: 8px 18px;
+    border: 1px solid var(--color-charcoal);
+    border-radius: var(--radius-button);
+    background-color: transparent;
+    font-family: var(--font-sans);
+    font-size: var(--text-body-sm);
+    font-weight: 500;
+    line-height: 1.2;
+    color: var(--color-charcoal);
+    cursor: pointer;
+    transition: background-color 0.2s ease, color 0.2s ease, border-color 0.2s ease;
+}
+
+input[type="file"].input-aura::file-selector-button:hover {
+    border-color: var(--color-mocha);
+    background-color: var(--color-mocha);
+    color: var(--color-white);
+}
+
 textarea.input-aura {
     height: auto;
     padding: 10px 14px;

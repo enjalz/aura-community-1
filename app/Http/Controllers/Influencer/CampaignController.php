@@ -108,11 +108,15 @@ class CampaignController extends Controller
             ->with('sukses', 'Pendaftaran berhasil dikirim. Admin akan memilih influencer untuk campaign ini.');
     }
 
-    // Campaign yang boleh dilihat influencer: yang sedang Berjalan, ditambah yang pernah ia daftarkan
+    // Campaign yang boleh dilihat influencer:
+    // yang sedang Berjalan dan belum lewat tanggal selesai, ditambah yang pernah ia daftarkan
+    // (supaya influencer tetap bisa melihat campaign yang ia ikuti walaupun sudah berakhir).
     private function campaignTerlihat(Influencer $influencer): Builder
     {
         return Campaign::query()->where(function ($query) use ($influencer) {
-            $query->where('statusCampaign', 'berjalan')
+            $query->where(fn ($q) => $q
+                    ->where('statusCampaign', 'berjalan')
+                    ->whereDate('tanggalSelesai', '>=', today()))
                 ->orWhereIn('idCampaign', $influencer->pendaftaran()->select('idCampaign'));
         });
     }
@@ -122,22 +126,27 @@ class CampaignController extends Controller
     private function alasanTidakBisaDaftar(Influencer $influencer, Campaign $campaign): ?string
     {
         if ($influencer->statusBlacklist) {
-            return 'Akun Anda berstatus blacklist, sehingga tidak dapat mendaftar campaign.';
+            return 'Akun Anda berstatus blacklist, sehingga tidak dapat mendaftar campaign.'
+                . ($influencer->alasanBlacklist ? " Alasan: {$influencer->alasanBlacklist}" : '');
         }
 
         if ($influencer->pendaftaran()->where('idCampaign', $campaign->idCampaign)->exists()) {
             return 'Anda sudah mendaftar di campaign ini.';
         }
 
-        if ($campaign->statusCampaign !== 'berjalan' || $campaign->tanggalSelesai->isPast() && ! $campaign->tanggalSelesai->isToday()) {
-            return 'Campaign ini tidak sedang membuka pendaftaran.';
+        // Pesan dibedakan supaya influencer tahu alasannya
+        if ($campaign->statusCampaign === 'selesai' || $campaign->tanggalSelesai->lt(today())) {
+            return 'Campaign ini sudah berakhir pada ' . $campaign->tanggalSelesai->format('d/m/Y') . ', sehingga pendaftaran sudah ditutup.';
+        }
+
+        if ($campaign->statusCampaign !== 'berjalan') {
+            return 'Pendaftaran campaign ini belum dibuka.';
         }
 
         if ($campaign->kategoriInfluencer !== $influencer->kategori) {
             return "Campaign ini khusus untuk influencer kategori {$campaign->kategoriInfluencer}.";
         }
 
-        // ===== TAMBAHAN: kepemilikan akun platform =====
         // Influencer wajib punya akun untuk SEMUA platform di ketentuan campaign (Tabel 17: "memenuhi ketentuan campaign").
         // Tanpa pengecekan ini, influencer bisa diterima tetapi tidak bisa mengirim draft untuk platform yang tidak dimiliki,
         // dan pembayaran tidak bisa diproses karena setiap platform di ketentuan harus punya hasil pengerjaan.
@@ -157,7 +166,6 @@ class CampaignController extends Controller
 
             return "Anda belum memiliki akun {$daftarPlatform}. Tambahkan akun {$daftarPlatform} di menu Profil untuk mengikuti campaign ini.";
         }
-        // ===== AKHIR TAMBAHAN =====
 
         $jumlahDiterima = $campaign->pendaftaran()->where('statusPendaftaran', 'diterima')->count();
 

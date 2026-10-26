@@ -2,8 +2,8 @@
 
 // Pilihan tetap yang dipakai di banyak halaman.
 return [
-    // Kategori influencer (Tabel 30)
-    'kategori' => ['Beauty', 'Tech', 'Fashion', 'Food'],
+    // Kategori (niche) influencer (Tabel 30)
+    'kategori' => ['Beauty', 'Lifestyle', 'Fashion', 'Food', 'Travel', 'Parenting', 'Health', 'Tech', 'Gaming', 'Education'],
 
     // Platform media sosial: kunci field di formulir => nama yang disimpan di database
     'platform' => [
@@ -51,9 +51,10 @@ return [
     'berkas' => [
         'draft' => ['ekstensi' => 'mp4,mov,webm,jpg,jpeg,png', 'maksimal' => 102400],  // 100 MB
         'insight' => ['ekstensi' => 'jpg,jpeg,png,webp', 'maksimal' => 5120],          // 5 MB
+        'demografi' => ['ekstensi' => 'jpg,jpeg,png,webp', 'maksimal' => 5120],        // 5 MB
     ],
 
-        // Status pembayaran (Tabel 40). "belum" = belum ada baris Pembayaran (kardinalitas 0..1).
+    // Status pembayaran (Tabel 40). "belum" = belum ada baris Pembayaran (kardinalitas 0..1).
     'statusPembayaran' => [
         'belum' => 'Belum Dibayar',
         'pending' => 'Pending',
@@ -81,10 +82,40 @@ return [
             'LinkAja' => 'ID_LINKAJA',
         ],
     ],
-    
+
     'statusLaporan' => [
         'belum' => 'Belum Dibuat',
         'draft' => 'Draft',
         'final' => 'Final',
+    ],
+
+    // Rentang usia audiens (AkunSosmed.usiaDominan dan Campaign.targetUsia)
+    'rentangUsia' => [
+        '13-17' => '13–17 tahun',
+        '18-24' => '18–24 tahun',
+        '25-34' => '25–34 tahun',
+        '35-44' => '35–44 tahun',
+        '45+'   => '45 tahun ke atas',
+    ],
+
+    // Gender audiens dominan (AkunSosmed.genderDominan)
+    'genderAudiens' => [
+        'pria'   => 'Pria',
+        'wanita' => 'Wanita',
+    ],
+
+    // Seleksi influencer (subbab 2.1.4 Manajemen Influencer)
+    'seleksi' => [
+        // Label "perlu diperiksa" jika view rate < 50% rata-rata rentang pengikutnya
+        'ambangViewRate' => 50,
+
+        // Rentang pengikut mengikuti Irwanda dkk.: nama => [minimal, maksimal]
+        'rentangPengikut' => [
+            '< 5K'      => [0, 4999],
+            '5K–20K'    => [5000, 19999],
+            '20K–100K'  => [20000, 99999],
+            '100K–300K' => [100000, 299999],
+            '> 300K'    => [300000, null],
+        ],
     ],
 ];

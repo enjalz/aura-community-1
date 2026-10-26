@@ -14,7 +14,7 @@
             <p>Isi data berikut untuk bergabung dengan Aura Community. Data akan diperiksa dan diverifikasi oleh Admin sebelum akun dapat digunakan.</p>
         </div>
 
-        <form method="POST" action="{{ route('register.simpan') }}" class="auth-form" novalidate>
+        <form method="POST" action="{{ route('register.simpan') }}" class="auth-form" enctype="multipart/form-data" novalidate>
             @csrf
 
             <hr class="garis">
@@ -64,7 +64,7 @@
 
             <hr class="garis">
             <p class="label-kelompok">Akun Media Sosial</p>
-            <p class="teks-bantuan">Isi minimal satu akun.</p>
+            <p class="teks-bantuan">Isi minimal satu akun, lengkap dengan demografi audiens dan screenshot insight-nya.</p>
 
             @error('sosmed')
                 <div class="alert-aura alert-gagal" role="alert">{{ $message }}</div>
@@ -82,6 +82,8 @@
                     <div class="col-12">
                         <x-input :name="$kunci . '_link'" label="Link Profil" type="url" :placeholder="'Tautan profil ' . $nama" />
                     </div>
+
+                    @include('partials.input-demografi', ['kunci' => $kunci, 'nama' => $nama])
                 </div>
             @endforeach
 

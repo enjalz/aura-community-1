@@ -2,6 +2,7 @@
 
 namespace App\Models;
 
+use App\Services\SeleksiInfluencer;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\BelongsToMany;
 use Illuminate\Database\Eloquent\Relations\HasMany;
@@ -15,7 +16,8 @@ class Campaign extends ModelAura
 
     protected $fillable = [
         'idPengguna', 'namaCampaign', 'deskripsi', 'targetAudiens', 'kategoriInfluencer',
-        'lokasiCampaign', 'feePerInfluencer', 'tanggalMulai', 'tanggalSelesai',
+        'lokasiCampaign', 'targetUsia', 'minimalPengikut', 'feePerInfluencer',
+        'tanggalMulai', 'tanggalSelesai', 'tanggalUnggahMulai', 'tanggalUnggahSelesai',
         'statusCampaign', 'kuotaInfluencer',
     ];
 
@@ -25,6 +27,9 @@ class Campaign extends ModelAura
             'feePerInfluencer' => 'decimal:2',
             'tanggalMulai' => 'date',
             'tanggalSelesai' => 'date',
+            'tanggalUnggahMulai' => 'date',
+            'tanggalUnggahSelesai' => 'date',
+            'minimalPengikut' => 'integer',
         ];
     }
 
@@ -51,5 +56,24 @@ class Campaign extends ModelAura
     public function laporan(): HasOne
     {
         return $this->hasOne(LaporanCampaign::class, 'idCampaign');
+    }
+
+    // Total estimasi jangkauan dari influencer yang diterima
+    public function hitungEstimasiJangkauanCampaign(): ?int
+    {
+        return app(SeleksiInfluencer::class)->estimasiCampaign($this);
+    }
+
+    // Contoh: "01/11/2026 (serempak)" atau "20/10/2026 - 25/10/2026"
+    public function periodeUnggah(): ?string
+    {
+        if (! $this->tanggalUnggahMulai || ! $this->tanggalUnggahSelesai) {
+            return null;
+        }
+
+        $mulai = $this->tanggalUnggahMulai->format('d/m/Y');
+        $selesai = $this->tanggalUnggahSelesai->format('d/m/Y');
+
+        return $mulai === $selesai ? "{$mulai} (serempak)" : "{$mulai} - {$selesai}";
     }
 }

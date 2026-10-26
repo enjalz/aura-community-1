@@ -2,6 +2,7 @@
 
 namespace App\Http\Requests\Admin;
 
+use App\Models\AkunSosmed;
 use App\Models\HasilPengerjaan;
 use App\Models\Influencer;
 use Illuminate\Foundation\Http\FormRequest;
@@ -55,6 +56,9 @@ class InfluencerRequest extends FormRequest
             ];
             $aturan["{$kunci}_pengikut"] = ['nullable', 'integer', 'min:0', 'max:2147483647', "required_with:{$kunci}_username,{$kunci}_link"];
             $aturan["{$kunci}_link"] = ['nullable', 'url:http,https', 'max:255', "required_with:{$kunci}_username,{$kunci}_pengikut"];
+
+            // Admin boleh mengosongkan demografi (diisi influencer sendiri di profil)
+            $aturan += AkunSosmed::aturanDemografi($kunci, wajibIsian: false, wajibBerkas: false);
         }
 
         return $aturan;
@@ -96,8 +100,11 @@ class InfluencerRequest extends FormRequest
             'min.string' => ':attribute minimal :min karakter.',
             'max.string' => ':attribute maksimal :max karakter.',
             'min.numeric' => ':attribute tidak boleh negatif.',
+            'max.file' => ':attribute maksimal :max KB.',
             'in' => 'Pilihan :attribute tidak valid.',
             'integer' => ':attribute harus berupa angka bulat.',
+            'file' => ':attribute harus berupa berkas.',
+            'mimes' => ':attribute harus berupa gambar (:values).',
             'url' => ':attribute harus berupa tautan lengkap, contoh https://instagram.com/namaanda.',
             'regex' => 'Format :attribute tidak valid. Gunakan angka, 8 sampai 20 digit.',
         ];
@@ -119,6 +126,7 @@ class InfluencerRequest extends FormRequest
             $nama["{$kunci}_username"] = "Username {$platform}";
             $nama["{$kunci}_pengikut"] = "Jumlah pengikut {$platform}";
             $nama["{$kunci}_link"] = "Link profil {$platform}";
+            $nama += AkunSosmed::namaKolomDemografi($kunci, $platform);
         }
 
         return $nama;

@@ -17,7 +17,7 @@
         Kembali
     </a>
 
-    <form method="POST" action="{{ $ubah ? route('admin.influencer.perbarui', $influencer) : route('admin.influencer.simpan') }}" novalidate>
+    <form method="POST" action="{{ $ubah ? route('admin.influencer.perbarui', $influencer) : route('admin.influencer.simpan') }}" enctype="multipart/form-data" novalidate>
         @csrf
         @if ($ubah)
             @method('PUT')
@@ -77,7 +77,7 @@
             <div class="col-lg-6">
                 <section class="form-kartu">
                     <h2 class="form-judul">Akun Media Sosial</h2>
-                    <p class="teks-bantuan">Isi minimal satu akun.</p>
+                    <p class="teks-bantuan">Isi minimal satu akun. Demografi audiens boleh dikosongkan, karena dapat dilengkapi influencer melalui menu Profil.</p>
 
                     @error('sosmed')
                         <div class="alert-aura alert-gagal" role="alert">{{ $message }}</div>
@@ -97,6 +97,8 @@
                             <div class="col-12">
                                 <x-input :name="$kunci . '_link'" label="Link Profil" type="url" :value="$akun?->linkProfil" :placeholder="'Tautan profil ' . $nama" />
                             </div>
+
+                            @include('partials.input-demografi', ['kunci' => $kunci, 'nama' => $nama, 'akun' => $akun])
                         </div>
                     @endforeach
                 </section>

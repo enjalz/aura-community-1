@@ -1,5 +1,5 @@
 {{-- Profil Influencer (wireframe Gambar 86, Tabel 7).
-     Kiri: Data Diri. Kanan: Akun Media Sosial dan Rekening. --}}
+     Kiri: Data Diri. Kanan: Akun Media Sosial (termasuk demografi audiens) dan Rekening. --}}
 @extends('layouts.dashboard')
 
 @section('title', 'Profil - Aura Community')
@@ -10,7 +10,7 @@
         $rekening = $influencer->rekening;
     @endphp
 
-    <form method="POST" action="{{ route('influencer.profil.perbarui') }}" novalidate>
+    <form method="POST" action="{{ route('influencer.profil.perbarui') }}" enctype="multipart/form-data" novalidate>
         @csrf
         @method('PUT')
 
@@ -89,6 +89,8 @@
                             <div class="col-12">
                                 <x-input :name="$kunci . '_link'" label="Link Profil" type="url" :value="$akun?->linkProfil" />
                             </div>
+
+                            @include('partials.input-demografi', ['kunci' => $kunci, 'nama' => $namaPlatform, 'akun' => $akun])
                         </div>
                     @endforeach
                 </section>

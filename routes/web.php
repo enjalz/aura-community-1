@@ -49,6 +49,9 @@ Route::middleware('auth')->group(function () {
         ->whereIn('jenis', ['draft', 'insight'])
         ->name('berkas.hasil');
 
+    // Membuka screenshot insight audiens (demografi)
+    Route::get('/berkas/demografi/{akun}', [BerkasController::class, 'demografi'])->name('berkas.demografi');
+
     // ===== ADMIN =====
     Route::middleware('peran:admin')->prefix('admin')->name('admin.')->group(function () {
         // Melihat Dashboard (Tabel 6)
@@ -145,11 +148,10 @@ Route::middleware('auth')->group(function () {
         Route::get('/dashboard', [DashboardController::class, 'ownerBrand'])->name('dashboard');   // Tabel 6
         Route::get('/campaign', [OwnerCampaignController::class, 'index'])->name('campaign');     // Tabel 16
         Route::get('/laporan', [OwnerLaporanController::class, 'index'])->name('laporan');        // Tabel 25
+        Route::get('/laporan/{campaign}', [OwnerLaporanController::class, 'detail'])->name('laporan.detail'); // Tabel 25 langkah 6-7
         Route::get('/riwayat', [OwnerRiwayatController::class, 'index'])->name('riwayat');        // Tabel 26
         Route::get('/profil', [OwnerProfilController::class, 'edit'])->name('profil');            // Tabel 7
         Route::put('/profil', [OwnerProfilController::class, 'update'])->name('profil.perbarui');
-        Route::get('/laporan', [OwnerLaporanController::class, 'index'])->name('laporan');        // Tabel 25
-        Route::get('/laporan/{campaign}', [OwnerLaporanController::class, 'detail'])->name('laporan.detail'); // Tabel 25 langkah 6-7
     }); // tutup grup owner brand
 
     // ===== INFLUENCER =====

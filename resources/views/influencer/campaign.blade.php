@@ -89,6 +89,7 @@
                         <div><dt>Kategori Influencer</dt><dd>{{ $terpilih->kategoriInfluencer }}</dd></div>
                         <div><dt>Lokasi Campaign</dt><dd>{{ $terpilih->lokasiCampaign }}</dd></div>
                         <div><dt>Periode</dt><dd>{{ $terpilih->tanggalMulai->format('d/m/Y') }} - {{ $terpilih->tanggalSelesai->format('d/m/Y') }}</dd></div>
+                        <div><dt>Periode Unggah Konten</dt><dd>{{ $terpilih->periodeUnggah() ?? '-' }}</dd></div>
                         <div><dt>Fee per Influencer</dt><dd><x-rupiah :nilai="$terpilih->feePerInfluencer" /></dd></div>
                         <div><dt>Kuota Influencer</dt><dd>{{ $terpilih->kuotaInfluencer }}</dd></div>
                     </dl>
@@ -128,21 +129,37 @@
                                 {{ config('aura.statusPendaftaran.' . $pendaftaranTerpilih->statusPendaftaran) }}
                             </span>
                         </div>
-                        @if ($pendaftaranTerpilih->statusPendaftaran === 'diterima')
-                            <p class="teks-bantuan">Anda diterima di campaign ini. Kirim draft konten melalui menu Hasil Pengerjaan.</p>
-                        @endif
-                                @elseif ($alasanTidakBisaDaftar)
-                {{-- Tidak memenuhi kriteria: tombol Daftar tidak ditampilkan,
-                     diganti kotak keterangan supaya influencer langsung tahu alasannya --}}
-                <div class="catatan">
-                    <strong><i class="bi bi-info-circle" aria-hidden="true"></i> Belum dapat mendaftar</strong>
-                    <p class="mb-0">{{ $alasanTidakBisaDaftar }}</p>
 
-                    {{-- Kalau alasannya soal akun media sosial, beri tautan langsung ke halaman Profil --}}
-                    @if (\Illuminate\Support\Str::contains($alasanTidakBisaDaftar, 'menu Profil'))
-                        <a class="tautan" href="{{ route('influencer.profil') }}">Buka Profil</a>
-                    @endif
-                </div>
+                        @if ($pendaftaranTerpilih->statusPendaftaran === 'menunggu')
+                            <p class="teks-bantuan">Pendaftaran Anda sedang ditinjau Admin.</p>
+                        @elseif ($pendaftaranTerpilih->statusPendaftaran === 'diterima')
+                            <p class="teks-bantuan">
+                                Anda diterima di campaign ini. Kirim draft konten melalui menu Hasil Pengerjaan.
+                                @if ($terpilih->periodeUnggah())
+                                    Konten wajib diunggah pada <strong>{{ $terpilih->periodeUnggah() }}</strong>,
+                                    lalu kirim link dan insight paling lambat <strong>{{ $terpilih->tanggalSelesai->format('d/m/Y') }}</strong>.
+                                    Influencer yang tidak mengirim hingga campaign berakhir akan masuk blacklist secara otomatis.
+                                @endif
+                            </p>
+                        @else
+                            <p class="teks-bantuan">Pendaftaran Anda tidak diterima untuk campaign ini.</p>
+                        @endif
+
+                    @elseif ($alasanTidakBisaDaftar)
+                        {{-- Tidak memenuhi kriteria: tombol Daftar tidak ditampilkan,
+                             diganti kotak keterangan supaya influencer langsung tahu alasannya --}}
+                        <div class="catatan">
+                            <strong><i class="bi bi-info-circle" aria-hidden="true"></i> Belum dapat mendaftar</strong>
+                            <p class="mb-0">{{ $alasanTidakBisaDaftar }}</p>
+
+                            {{-- Kalau alasannya soal akun media sosial, beri tautan langsung ke halaman Profil --}}
+                            @if (\Illuminate\Support\Str::contains($alasanTidakBisaDaftar, 'menu Profil'))
+                                <a class="tautan" href="{{ route('influencer.profil') }}">Buka Profil</a>
+                            @endif
+                        </div>
+
+                    @else
+                        {{-- Memenuhi semua kriteria: tampilkan form pendaftaran --}}
                         <form method="POST" action="{{ route('influencer.campaign.daftar', $terpilih) }}" class="tumpukan-kecil"
                               data-konfirmasi="Daftar ke {{ $terpilih->namaCampaign }}?" novalidate>
                             @csrf
@@ -168,7 +185,8 @@
                                         <p class="pesan-error">{{ $message }}</p>
                                     @enderror
                                 </div>
-                                                                {{-- Pilihan dari config/aura.php 'kanalPembayaran', supaya kode kanal Xendit bisa ditentukan --}}
+
+                                {{-- Pilihan dari config/aura.php 'kanalPembayaran', supaya kode kanal Xendit bisa ditentukan --}}
                                 <div class="field">
                                     <label for="namaPenyedia" class="field-label">Nama Penyedia</label>
                                     <select id="namaPenyedia" name="namaPenyedia" @class(['input-aura', 'is-invalid' => $errors->has('namaPenyedia')])>
@@ -187,6 +205,12 @@
                                 </div>
                                 <x-input name="nomorRekening" label="Nomor Rekening" inputmode="numeric" placeholder="Hanya angka" />
                                 <x-input name="namaPemilik" label="Nama Pemilik" :value="auth()->user()->nama" />
+                            @endif
+
+                            @if ($terpilih->periodeUnggah())
+                                <p class="teks-bantuan">
+                                    Jika diterima, konten wajib diunggah pada <strong>{{ $terpilih->periodeUnggah() }}</strong>.
+                                </p>
                             @endif
 
                             <button type="submit" class="btn-aura btn-aura-primary">Daftar Campaign</button>

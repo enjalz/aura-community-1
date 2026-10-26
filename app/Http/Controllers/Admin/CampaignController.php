@@ -5,6 +5,8 @@ namespace App\Http\Controllers\Admin;
 use App\Http\Controllers\Controller;
 use App\Http\Requests\Admin\CampaignRequest;
 use App\Models\Campaign;
+use App\Services\BlacklistOtomatis;
+use App\Services\SeleksiInfluencer;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Arr;
@@ -17,8 +19,14 @@ class CampaignController extends Controller
     private const PER_HALAMAN = 10;
 
     // Daftar campaign (wireframe Gambar 72)
-    public function index(Request $request): View
+    public function index(Request $request, BlacklistOtomatis $blacklist): View
     {
+        // Blacklist otomatis dicek setiap kali Admin membuka daftar campaign,
+        // supaya tetap berjalan walaupun scheduler tidak aktif di server lokal.
+        if ($jumlah = $blacklist->jalankan()) {
+            session()->now('sukses', "{$jumlah} influencer otomatis dimasukkan ke blacklist karena tidak mengirim konten hingga campaign berakhir.");
+        }
+
         $cari = trim((string) $request->query('cari'));
         $status = $request->query('status');
 
@@ -61,7 +69,8 @@ class CampaignController extends Controller
     }
 
     // Detail campaign, ketentuan, owner brand yang punya akses, dan daftar pendaftar
-    public function show(Campaign $campaign): View
+    // beserta data seleksi (kecocokan, ER, view rate, label, estimasi jangkauan)
+    public function show(Campaign $campaign, SeleksiInfluencer $seleksi): View
     {
         $campaign->load([
             'ketentuanPlatform',
@@ -71,9 +80,14 @@ class CampaignController extends Controller
             'pendaftaran.influencer.akunSosmed',
         ]);
 
+        $daftarSeleksi = $seleksi->daftarPendaftar($campaign);
+
         return view('admin.campaign.detail', [
             'campaign' => $campaign,
             'jumlahDiterima' => $campaign->pendaftaran->where('statusPendaftaran', 'diterima')->count(),
+            // Diakses di view dengan $seleksi[$pendaftaran->idPendaftaran]
+            'seleksi' => $daftarSeleksi->keyBy(fn ($baris) => $baris->pendaftaran->idPendaftaran),
+            'estimasiCampaign' => SeleksiInfluencer::totalEstimasi($daftarSeleksi),
         ]);
     }
 

@@ -55,7 +55,7 @@ class RegistrasiController extends Controller
         ];
 
         // Satu platform boleh dikosongkan seluruhnya. Kalau salah satu kolomnya diisi,
-        // ketiganya wajib diisi. Pasangan platform + username tidak boleh sudah terdaftar.
+        // semuanya wajib diisi, termasuk demografi audiens dan screenshot buktinya.
         foreach ($platform as $kunci => $nama) {
             $aturan["{$kunci}_username"] = [
                 'nullable', 'string', 'max:100',
@@ -70,10 +70,12 @@ class RegistrasiController extends Controller
                 'nullable', 'url:http,https', 'max:255',
                 "required_with:{$kunci}_username,{$kunci}_pengikut",
             ];
+            $aturan += AkunSosmed::aturanDemografi($kunci, wajibIsian: true, wajibBerkas: true);
 
             $namaKolom["{$kunci}_username"] = "Username {$nama}";
             $namaKolom["{$kunci}_pengikut"] = "Jumlah pengikut {$nama}";
             $namaKolom["{$kunci}_link"] = "Link profil {$nama}";
+            $namaKolom += AkunSosmed::namaKolomDemografi($kunci, $nama);
         }
 
         $pesan = [
@@ -84,9 +86,12 @@ class RegistrasiController extends Controller
             'min.string' => ':attribute minimal :min karakter.',
             'max.string' => ':attribute maksimal :max karakter.',
             'min.numeric' => ':attribute tidak boleh negatif.',
+            'max.file' => ':attribute maksimal :max KB.',
             'confirmed' => 'Konfirmasi password tidak sama.',
             'in' => 'Pilihan :attribute tidak valid.',
             'integer' => ':attribute harus berupa angka bulat.',
+            'file' => ':attribute harus berupa berkas.',
+            'mimes' => ':attribute harus berupa gambar (:values).',
             'url' => ':attribute harus berupa tautan lengkap, contoh https://instagram.com/namaanda.',
             'regex' => 'Format :attribute tidak valid. Gunakan angka, 8 sampai 20 digit.',
         ];
@@ -109,7 +114,7 @@ class RegistrasiController extends Controller
         $data = $validator->validated();
 
         // Disimpan ke tiga tabel sekaligus. Kalau satu gagal, semuanya dibatalkan.
-        DB::transaction(function () use ($data, $platform) {
+        DB::transaction(function () use ($data) {
             $pengguna = Pengguna::create([
                 'nama' => $data['nama'],
                 'email' => $data['email'],
@@ -119,25 +124,13 @@ class RegistrasiController extends Controller
                 'statusAkun' => 'aktif',
             ]);
 
-            Influencer::create([
+            $influencer = Influencer::create([
                 'idPengguna' => $pengguna->idPengguna,
                 'kategori' => $data['kategori'],
                 'statusVerifikasi' => 'menunggu',
             ]);
 
-            foreach ($platform as $kunci => $nama) {
-                if (empty($data["{$kunci}_username"])) {
-                    continue;
-                }
-
-                AkunSosmed::create([
-                    'idPengguna' => $pengguna->idPengguna,
-                    'platform' => $nama,
-                    'username' => $data["{$kunci}_username"],
-                    'linkProfil' => $data["{$kunci}_link"],
-                    'jumlahPengikut' => $data["{$kunci}_pengikut"],
-                ]);
-            }
+            $influencer->simpanAkunSosmed($data);
         });
 
         return redirect()->route('login')->with(

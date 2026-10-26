@@ -1,5 +1,6 @@
 {{-- Verifikasi Akun.
-     Kiri: daftar akun menunggu verifikasi. Kanan: data influencer yang sedang diperiksa.
+     Kiri: daftar akun menunggu verifikasi. Kanan: data influencer yang sedang diperiksa,
+     termasuk demografi audiens dan screenshot insight untuk dicocokkan (Tabel 8 langkah 5).
      Pesan sukses/gagal setelah Verifikasi/Tolak ditampilkan oleh layouts/dashboard.blade.php. --}}
 @extends('layouts.dashboard')
 
@@ -73,6 +74,18 @@
                                          supaya tautan berbahaya seperti "javascript:..." tidak bisa dijalankan --}}
                                     @if (\Illuminate\Support\Str::startsWith($akun->linkProfil, ['https://', 'http://']))
                                         - <a class="tautan" href="{{ $akun->linkProfil }}" target="_blank" rel="noopener noreferrer">Lihat profil</a>
+                                    @endif
+
+                                    {{-- Tabel 8 langkah 5: cocokkan data demografi dengan screenshot insight --}}
+                                    <div class="teks-redup">
+                                        Audiens: {{ $akun->domisiliAudiens ?? '-' }}
+                                        · {{ $akun->usiaDominan ? config('aura.rentangUsia.' . $akun->usiaDominan) : '-' }}
+                                        · {{ $akun->genderDominan ? config('aura.genderAudiens.' . $akun->genderDominan) : '-' }}
+                                    </div>
+                                    @if ($akun->fileDemografi)
+                                        <a class="tautan" href="{{ route('berkas.demografi', $akun) }}" target="_blank" rel="noopener noreferrer">Lihat screenshot insight audiens</a>
+                                    @else
+                                        <span class="teks-redup">Screenshot insight audiens belum diunggah</span>
                                     @endif
                                 @else
                                     -
