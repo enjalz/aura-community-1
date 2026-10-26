@@ -19,7 +19,7 @@ class BlacklistOtomatis
                 ->whereNotNull('tanggalUnggahSelesai')
                 ->whereDate('tanggalSelesai', '<', today()))
             ->whereHas('influencer', fn ($q) => $q->where('statusBlacklist', false))
-            ->with(['campaign', 'hasilPengerjaan'])
+            ->with(['campaign.ketentuanPlatform', 'hasilPengerjaan'])
             ->get()
             ->filter(fn (PendaftaranCampaign $pendaftaran) => $this->tidakMenyelesaikan($pendaftaran));
 
@@ -43,12 +43,15 @@ class BlacklistOtomatis
         return $jumlah;
     }
 
+    // Aturannya dibuat sejalan dengan syarat pembayaran di PembayaranController::syaratSiapDibayar(),
+    // supaya influencer yang tidak bisa dibayar karena tidak menyelesaikan campaign juga ikut terdeteksi.
     private function tidakMenyelesaikan(PendaftaranCampaign $pendaftaran): bool
     {
         $hasil = $pendaftaran->hasilPengerjaan;
+        $jumlahPlatform = $pendaftaran->campaign->ketentuanPlatform->pluck('platform')->unique()->count();
 
-        // Tidak pernah mengirim draft sama sekali
-        if ($hasil->isEmpty()) {
+        // Tidak pernah mengirim draft, atau ada platform di ketentuan yang tidak dikerjakan sama sekali
+        if ($hasil->isEmpty() || $hasil->count() < $jumlahPlatform) {
             return true;
         }
 
