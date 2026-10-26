@@ -248,3 +248,14 @@ textarea.input-aura {
         transition: none;
     }
 }
+
+/* ---------- Logo gambar (pengganti tulisan "Aura Community") ---------- */
+.logo-gambar {
+    display: block;
+    width: auto;
+    height: 40px;
+}
+
+.sidebar-logo .logo-gambar {
+    height: 44px;
+}

@@ -33,7 +33,7 @@ class BlacklistOtomatis
                 ->where('statusBlacklist', false)
                 ->update([
                     'statusBlacklist' => true,
-                    'alasanBlacklist' => "Otomatis: tidak mengirim konten campaign {$campaign->namaCampaign} "
+                    'alasanBlacklist' => "Otomatis: tidak menyelesaikan pengiriman konten untuk {$campaign->namaCampaign} "
                         . "(periode unggah {$campaign->periodeUnggah()}) hingga campaign berakhir pada "
                         . $campaign->tanggalSelesai->format('d/m/Y') . '.',
                     'tanggalBlacklist' => today()->toDateString(),

@@ -38,7 +38,9 @@
                         <button type="button" class="btn-close" data-bs-dismiss="offcanvas" data-bs-target="#sidebar" aria-label="Tutup menu"></button>
                     </div>
 
-                    <a href="{{ route('dashboard') }}" class="sidebar-logo">Aura Community</a>
+                    <a href="{{ route('dashboard') }}" class="sidebar-logo">
+                        <img src="{{ asset('images/logo-aura.svg') }}" alt="Aura Community" class="logo-gambar">
+                    </a>
 
                     <nav class="sidebar-menu" aria-label="Menu utama">
                         @foreach ($menu as $item)

@@ -3,7 +3,9 @@
     <div class="kontainer">
         <div class="row g-4">
             <div class="col-md-6 col-lg-3">
-                <a class="logo-teks" href="#beranda">Aura Community</a>
+                <a class="logo-teks" href="#beranda">
+                    <img src="{{ asset('images/logo-aura.svg') }}" alt="Aura Community" class="logo-gambar logo-footer">
+                </a>
                 <p class="footer-deskripsi">{{ $landing['footer']['deskripsi'] }}</p>
             </div>
 

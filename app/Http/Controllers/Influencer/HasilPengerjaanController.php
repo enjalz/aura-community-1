@@ -3,6 +3,7 @@
 namespace App\Http\Controllers\Influencer;
 
 use App\Http\Controllers\Controller;
+use App\Models\Campaign;
 use App\Models\HasilPengerjaan;
 use App\Models\Influencer;
 use App\Models\PendaftaranCampaign;
@@ -43,6 +44,11 @@ class HasilPengerjaanController extends Controller
         // Entry condition Tabel 18: status pendaftaran diterima
         if ($pendaftaran->statusPendaftaran !== 'diterima') {
             return back()->with('gagal', 'Anda belum diterima di campaign ini.');
+        }
+
+        // Pengiriman ditutup setelah campaign berakhir
+        if ($pesan = $this->pesanSudahBerakhir($pendaftaran->campaign, 'draft')) {
+            return back()->with('gagal', $pesan);
         }
 
         $aturanBerkas = config('aura.berkas.draft');
@@ -104,7 +110,6 @@ class HasilPengerjaanController extends Controller
     }
 
     // Tabel 22: mengirim link konten yang sudah tayang, tangkapan layar insight, dan angka metrik
-        // Tabel 22: mengirim link konten yang sudah tayang, tangkapan layar insight, dan angka metrik
     public function kirimInsight(Request $request, HasilPengerjaan $hasil): RedirectResponse
     {
         $influencer = $request->user()->influencer;
@@ -120,6 +125,11 @@ class HasilPengerjaanController extends Controller
             return back()->with('gagal', 'Insight sudah dikirim dan sedang diperiksa atau sudah disetujui.');
         }
 
+        // Pengiriman ditutup setelah campaign berakhir
+        if ($pesan = $this->pesanSudahBerakhir($hasil->pendaftaran->campaign, 'insight')) {
+            return back()->with('gagal', $pesan);
+        }
+
         $aturanBerkas = config('aura.berkas.insight');
         $data = $request->validate(
             [
@@ -128,7 +138,6 @@ class HasilPengerjaanController extends Controller
                 'jumlahViews' => ['required', 'integer', 'min:0', 'max:2147483647'],
                 'jumlahLikes' => ['required', 'integer', 'min:0', 'max:2147483647'],
                 'jumlahKomentar' => ['required', 'integer', 'min:0', 'max:2147483647'],
-                // TAMBAHAN: share dan save ikut dihitung di engagement rate. Boleh 0.
                 'jumlahShare' => ['required', 'integer', 'min:0', 'max:2147483647'],
                 'jumlahSave' => ['required', 'integer', 'min:0', 'max:2147483647'],
                 'jumlahPengikut' => ['required', 'integer', 'min:1', 'max:2147483647'],
@@ -214,6 +223,17 @@ class HasilPengerjaanController extends Controller
         return $pendaftaran->hasilPengerjaan()
             ->whereHas('akunSosmed', fn ($q) => $q->where('platform', $platform))
             ->first();
+    }
+
+    // Batas akhir pengiriman draft dan insight adalah Tanggal Selesai campaign.
+    // Mengembalikan pesan penolakan, atau null kalau campaign belum berakhir.
+    private function pesanSudahBerakhir(Campaign $campaign, string $jenis): ?string
+    {
+        if (! $campaign->tanggalSelesai->lt(today())) {
+            return null;
+        }
+
+        return "Campaign sudah berakhir pada {$campaign->tanggalSelesai->format('d/m/Y')}, sehingga {$jenis} tidak dapat dikirim lagi.";
     }
 
     // Kunci baris untuk ?pilih=, contoh "3-instagram"

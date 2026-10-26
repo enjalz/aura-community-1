@@ -16,7 +16,9 @@
 
 <nav class="navbar navbar-expand-xl navbar-landing" aria-label="Menu utama">
     <div class="kontainer">
-        <a class="logo-teks" href="#beranda">Aura Community</a>
+        <a class="logo-teks" href="#beranda">
+            <img src="{{ asset('images/logo-aura.svg') }}" alt="Aura Community" class="logo-gambar">
+        </a>
 
         <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#menu-landing"
                 aria-controls="menu-landing" aria-expanded="false" aria-label="Buka menu">

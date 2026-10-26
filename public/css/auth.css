@@ -20,26 +20,49 @@
 
 
 /* ---------------------------------------------------------------------
+   PEMBUNGKUS ISI SELEBAR HALAMAN
+   Sama persis dengan .kontainer di landing.css, supaya logo dan tombol navbar
+   berada di posisi yang sama dengan navbar landing page.
+   --------------------------------------------------------------------- */
+.kontainer {
+    width: 100%;
+    max-width: calc(var(--page-max-width) + 48px);
+    margin: 0 auto;
+    padding: 0 var(--spacing-24);
+}
+
+
+/* ---------------------------------------------------------------------
    NAVBAR
    Dipakai di: layouts/auth.blade.php  ->  <header class="auth-navbar">
-   Wireframe: tinggi 80px, padding kiri-kanan 80px, garis bawah tipis.
+   Padding, garis bawah, dan warna latar disamakan dengan .navbar-landing di landing.css.
    justify-content: space-between = logo menempel kiri, tombol menempel kanan.
    Tombolnya diisi dari halaman masing-masing lewat @section('tombol-navbar'):
    login menampilkan "Daftar Influencer", registrasi menampilkan "Login".
    --------------------------------------------------------------------- */
 .auth-navbar {
-    display: flex;
-    align-items: center;               /* logo dan tombol sejajar di tengah secara vertikal */
-    justify-content: space-between;
-    height: 80px;
-    padding: 0 var(--spacing-80);
+    padding: var(--spacing-16) 0;
     border-bottom: 1px solid var(--color-border);
     background-color: var(--color-ivory);
 }
 
-/* Tulisan "Aura Community" di kiri navbar (pengganti logo sementara) */
+.auth-navbar .kontainer {
+    display: flex;
+    align-items: center;               /* logo dan tombol sejajar di tengah secara vertikal */
+    justify-content: space-between;
+}
+
+/* Tombol di kanan navbar, jaraknya sama dengan .navbar-aksi di landing page */
+.navbar-aksi {
+    display: flex;
+    gap: 12px;
+}
+
+/* Pembungkus logo di kiri navbar */
 .logo-teks {
-    font-size: var(--text-subheading);  /* 18px, sesuai ukuran logo di DESIGN.md */
+    display: inline-flex;
+    align-items: center;
+    font-size: var(--text-subheading);
     font-weight: 600;
     letter-spacing: -0.02em;
 }
@@ -161,15 +184,56 @@
 
 /* ---------------------------------------------------------------------
    LAYAR KECIL (HP dan tablet, di bawah 768px)
-   Padding diperkecil supaya formulir tidak terlalu sempit.
+   Padding kartu diperkecil supaya formulir tidak terlalu sempit.
+   Jarak tepi navbar tidak diubah, karena sudah diatur oleh .kontainer (sama dengan landing).
    --------------------------------------------------------------------- */
 @media (max-width: 767.98px) {
-    .auth-navbar {
-        padding: 0 var(--spacing-16);
-    }
-
     .auth-card,
     .auth-card-lebar {
         padding: var(--spacing-24);
     }
+}
+
+/* ---------------------------------------------------------------------
+   NAVBAR MENEMPEL SAAT DIGULIR
+   Sama dengan navbar landing page (landing.css).
+   z-index 1030 = di atas isi halaman, sama seperti navbar sticky bawaan Bootstrap.
+   --------------------------------------------------------------------- */
+.auth-navbar {
+    position: sticky;
+    top: 0;
+    z-index: 1030;
+    transition: background-color 0.25s ease, padding 0.25s ease;
+}
+
+/* Setelah digulir (class dipasang oleh skrip di layouts/auth.blade.php):
+   lebih ramping dan agak transparan, isi di belakangnya tampak buram. */
+.auth-navbar.is-tergulir {
+    padding: 10px 0;
+    background-color: rgba(250, 247, 244, 0.9);
+    -webkit-backdrop-filter: blur(10px);
+    backdrop-filter: blur(10px);
+}
+
+/* Pengguna yang mematikan animasi di perangkatnya tidak mendapat transisi */
+@media (prefers-reduced-motion: reduce) {
+    .auth-navbar {
+        transition: none;
+    }
+}
+
+/* Tombol di navbar login dan registrasi, setinggi tombol navbar landing page */
+.auth-navbar .btn-aura {
+    height: 40px;
+    padding: 0 18px;
+    font-size: var(--text-body-sm);
+}
+
+/* Tombol di dalam kartu form (Login dan Daftar).
+   Tingginya disamakan dengan kolom isian (.input-aura = 44px),
+   supaya tombol dan kolom di atasnya terlihat satu kesatuan. */
+.auth-form .btn-aura {
+    height: 44px;
+    padding: 0 18px;
+    font-size: var(--text-body-sm);
 }

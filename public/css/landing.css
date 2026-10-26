@@ -523,3 +523,16 @@ section[id] {
         transition: none;
     }
 }
+
+/* ---------------------------------------------------------------------
+   TOMBOL SERAGAM
+   Semua tombol di landing page (navbar, hero, kartu, kontak) dibuat sama tinggi,
+   mengikuti ukuran tombol navbar (btn-aura-sm).
+   --------------------------------------------------------------------- */
+.btn-aura,
+.btn-aura-sm,
+.btn-aura-besar {
+    height: 40px;
+    padding: 0 18px;
+    font-size: var(--text-body-sm);
+}

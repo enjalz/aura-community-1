@@ -48,6 +48,18 @@ class Influencer extends ModelAura
         return $this->hasMany(PendaftaranCampaign::class, 'idPengguna');
     }
 
+    // Alasan blacklist untuk ditampilkan ke influencer.
+    // Awalan "Otomatis: " disimpan di database sebagai penanda blacklist dari sistem
+    // (dipakai halaman Admin), tetapi tidak perlu ditampilkan ke influencer.
+    public function alasanBlacklistTampil(): ?string
+    {
+        if (! filled($this->alasanBlacklist)) {
+            return null;
+        }
+
+        return \Illuminate\Support\Str::after($this->alasanBlacklist, 'Otomatis: ');
+    }
+
     // Menyimpan akun Instagram dan TikTok dari form (kunci field: instagram_username, tiktok_pengikut, dst.).
     // Diisi = dibuat atau diperbarui. Dikosongkan = dihapus (beserta screenshot demografinya).
     // Dipakai oleh registrasi, profil influencer, dan form data influencer Admin.

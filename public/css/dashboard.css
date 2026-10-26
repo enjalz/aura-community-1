@@ -44,9 +44,6 @@
     align-items: center;
     justify-content: center;
     height: 56px;
-    border-radius: var(--radius-card);
-    background-color: var(--color-ivory);
-    font-weight: 600;
 }
 
 .sidebar-menu {

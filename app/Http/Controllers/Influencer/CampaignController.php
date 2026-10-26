@@ -127,7 +127,7 @@ class CampaignController extends Controller
     {
         if ($influencer->statusBlacklist) {
             return 'Akun Anda berstatus blacklist, sehingga tidak dapat mendaftar campaign.'
-                . ($influencer->alasanBlacklist ? " Alasan: {$influencer->alasanBlacklist}" : '');
+                . ($influencer->alasanBlacklistTampil() ? ' Alasan: ' . $influencer->alasanBlacklistTampil() : '');
         }
 
         if ($influencer->pendaftaran()->where('idCampaign', $campaign->idCampaign)->exists()) {

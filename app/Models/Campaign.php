@@ -74,6 +74,6 @@ class Campaign extends ModelAura
         $mulai = $this->tanggalUnggahMulai->format('d/m/Y');
         $selesai = $this->tanggalUnggahSelesai->format('d/m/Y');
 
-        return $mulai === $selesai ? "{$mulai} (serempak)" : "{$mulai} - {$selesai}";
+        return $mulai === $selesai ? "{$mulai}" : "{$mulai} - {$selesai}";
     }
 }

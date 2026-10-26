@@ -10,6 +10,7 @@
 @endpush
 
 @section('isi')
+    @include('partials.peringatan-blacklist')
     <form method="GET" action="{{ route('influencer.campaign') }}" class="toolbar" data-filter-otomatis>
         <div class="input-cari">
             <i class="bi bi-search" aria-hidden="true"></i>
