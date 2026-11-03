@@ -174,6 +174,12 @@
                                         <p class="pesan-error">{{ $message }}</p>
                                     @enderror
                                     <p class="teks-bantuan">Video (mp4, mov, webm) maksimal 500 MB, atau foto (jpg, png) maksimal 10 MB.</p>
+                                    @if ($terpilih->pendaftaran->campaign->kontenSama)
+                                        <div class="catatan">
+                                            Campaign ini memakai konten yang sama untuk semua platform. Draft yang Anda kirim berlaku untuk
+                                            {{ $terpilih->pendaftaran->campaign->ketentuanPlatform->pluck('platform')->unique()->join(', ', ' dan ') }}.
+                                        </div>
+                                    @endif
                                 </div>
 
                                 <button type="submit" class="btn-aura btn-aura-primary">{{ $hasil ? 'Kirim Ulang Draft' : 'Kirim Draft' }}</button>

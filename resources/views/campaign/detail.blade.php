@@ -41,8 +41,7 @@
                 <div class="daftar-data-baris"><dt>Nama Campaign</dt><dd>{{ $campaign->namaCampaign }}</dd></div>
                 <div class="daftar-data-baris"><dt>Deskripsi</dt><dd class="teks-panjang">{{ $campaign->deskripsi }}</dd></div>
                 <div class="daftar-data-baris"><dt>Target Audiens</dt><dd>{{ $campaign->targetAudiens }}</dd></div>
-                <div class="daftar-data-baris"><dt>Kategori Influencer</dt><dd>{{ $campaign->kategoriInfluencer }}</dd></div>
-                <div class="daftar-data-baris"><dt>Lokasi Campaign</dt><dd>{{ $campaign->lokasiCampaign }}</dd></div>
+                <div class="daftar-data-baris"><dt>Kategori Influencer</dt><dd>{{ $campaign->kategoriInfluencer }}</dd></div><div class="daftar-data-baris"><dt>Kehadiran</dt><dd>{{ $campaign->wajibHadir ? 'Wajib datang langsung ke lokasi' : 'Tidak wajib hadir' }}</dd></div><div class="daftar-data-baris"><dt>Lokasi Campaign</dt><dd>{{ $campaign->lokasiCampaign }}</dd></div>
                 <div class="daftar-data-baris"><dt>Periode</dt><dd>{{ $campaign->tanggalMulai->format('d/m/Y') }} - {{ $campaign->tanggalSelesai->format('d/m/Y') }}</dd></div>
                 <div class="daftar-data-baris"><dt>Fee per Influencer</dt><dd><x-rupiah :nilai="$campaign->feePerInfluencer" /></dd></div>
                 <div class="daftar-data-baris"><dt>Kuota Influencer</dt><dd>{{ $jumlahDiterima }} diterima dari kuota {{ $campaign->kuotaInfluencer }}</dd></div>

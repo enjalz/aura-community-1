@@ -50,7 +50,7 @@
                                 <tr @class(['is-terpilih' => $terpilih?->is($hasil)])>
                                     <td>{{ $hasil->pendaftaran->influencer->pengguna->nama }}</td>
                                     <td>{{ $hasil->pendaftaran->campaign->namaCampaign }}</td>
-                                    <td>{{ $hasil->tanggalPengirimanInsight?->format('d/m/Y') ?? '-' }}</td>
+                                    <td>{{ $hasil->tanggalPengirimanInsight?->format('d/m/Y H:i \W\I\B') ?? '-' }}</td>
                                     <td><x-status jenis="statusInsight" :nilai="$hasil->statusInsight" /></td>
                                     <td class="kolom-aksi">
                                         <a class="tautan" href="{{ request()->fullUrlWithQuery(['pilih' => $hasil->idHasil]) }}">Periksa</a>
@@ -85,7 +85,7 @@
                                 @endif
                             </dd>
                         </div>
-                        <div><dt>Tanggal Kirim Insight</dt><dd>{{ $terpilih->tanggalPengirimanInsight?->format('d/m/Y') ?? '-' }}</dd></div>
+                        <div><dt>Tanggal Kirim Insight</dt><dd>{{ $terpilih->tanggalPengirimanInsight?->format('d/m/Y H:i \W\I\B') ?? '-' }}</dd></div>
                     </dl>
 
                     {{-- Tabel 23 langkah 4-5: tangkapan layar dibandingkan dengan angka yang diisi --}}

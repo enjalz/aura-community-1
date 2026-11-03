@@ -162,6 +162,22 @@
                         @endforeach
                     </div>
 
+                    <div class="field">
+                        <input type="hidden" name="kontenSama" value="0">
+                        <div class="form-check">
+                            <input class="form-check-input" type="checkbox" id="kontenSama" name="kontenSama" value="1"
+                                @checked(old('kontenSama', $campaign?->kontenSama))>
+                            <label class="form-check-label" for="kontenSama">Gunakan konten yang sama untuk semua platform</label>
+                        </div>
+                        <p class="teks-bantuan">
+                            Centang jika influencer mengunggah konten yang sama di setiap platform. Draft cukup dikirim sekali,
+                            sedangkan link dan insight tetap dikirim per platform. Jenis dan jumlah konten setiap platform harus sama.
+                        </p>
+                        @error('kontenSama')
+                            <div class="alert-aura alert-gagal" role="alert">{{ $message }}</div>
+                        @enderror
+                    </div>
+
                     <button type="button" class="btn-aura btn-aura-outline" data-tambah-ketentuan>
                         <i class="bi bi-plus-lg" aria-hidden="true"></i>
                         Tambah Ketentuan

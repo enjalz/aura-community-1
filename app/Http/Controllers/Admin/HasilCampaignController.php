@@ -57,7 +57,8 @@ class HasilCampaignController extends Controller
 
         // Status dan feedback disimpan bersama. Kalau draft ternyata sudah diproses, tidak ada yang disimpan.
         $berhasil = DB::transaction(function () use ($hasil, $data, $request) {
-            $jumlahBerubah = HasilPengerjaan::whereKey($hasil->idHasil)
+            $daftarId = $this->idHasilTerkait($hasil);
+            $jumlahBerubah = HasilPengerjaan::whereKey($daftarId)
                 ->where('statusDraft', 'menunggu')
                 ->update(['statusDraft' => 'revisi']);
 
@@ -65,12 +66,14 @@ class HasilCampaignController extends Controller
                 return false;
             }
 
-            Feedback::create([
-                'idHasil' => $hasil->idHasil,
-                'idPengguna' => $request->user()->idPengguna,
-                'isiFeedback' => $data['isiFeedback'],
-                'tanggalFeedback' => now()->toDateString(),
-            ]);
+            foreach ($daftarId as $idHasil) {
+                Feedback::create([
+                    'idHasil' => $idHasil,
+                    'idPengguna' => $request->user()->idPengguna,
+                    'isiFeedback' => $data['isiFeedback'],
+                    'tanggalFeedback' => now()->toDateString(),
+                ]);
+            }
 
             return true;
         });
@@ -85,7 +88,7 @@ class HasilCampaignController extends Controller
     // Tabel 21: menyetujui draft dan membuka form insight untuk influencer
     public function setujui(HasilPengerjaan $hasil): RedirectResponse
     {
-        $jumlahBerubah = HasilPengerjaan::whereKey($hasil->idHasil)
+        $jumlahBerubah = HasilPengerjaan::whereKey($this->idHasilTerkait($hasil))
             ->where('statusDraft', 'menunggu')
             ->update(['statusDraft' => 'disetujui']);
 
@@ -94,5 +97,20 @@ class HasilCampaignController extends Controller
         }
 
         return back()->with('sukses', 'Draft disetujui. Influencer dapat mengunggah konten dan mengirim insight.');
+    }
+        // Konten sama: draft yang sama dipakai di semua platform, jadi pemeriksaannya berlaku untuk semuanya.
+    // Konten berbeda: hanya hasil yang dipilih.
+    private function idHasilTerkait(HasilPengerjaan $hasil): array
+    {
+        $pendaftaran = $hasil->pendaftaran;
+
+        if (! $pendaftaran->campaign->kontenSama) {
+            return [$hasil->idHasil];
+        }
+
+        return $pendaftaran->hasilPengerjaan()
+            ->where('draftKonten', $hasil->draftKonten)
+            ->pluck('idHasil')
+            ->all();
     }
 }

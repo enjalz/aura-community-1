@@ -43,7 +43,7 @@
                 <div class="daftar-data-baris"><dt>Deskripsi</dt><dd class="teks-panjang">{{ $campaign->deskripsi }}</dd></div>
                 <div class="daftar-data-baris"><dt>Target Audiens</dt><dd>{{ $campaign->targetAudiens }}</dd></div>
                 <div class="daftar-data-baris"><dt>Kategori Influencer</dt><dd>{{ $campaign->kategoriInfluencer }}</dd></div>
-                <div class="daftar-data-baris"><dt>Lokasi Campaign</dt><dd>{{ $campaign->lokasiCampaign }}</dd></div>
+                <div class="daftar-data-baris"><dt>Kehadiran</dt><dd>{{ $campaign->wajibHadir ? 'Wajib datang langsung ke lokasi' : 'Tidak wajib hadir' }}</dd></div>
                 <div class="daftar-data-baris"><dt>Target Usia Audiens</dt><dd>{{ $campaign->targetUsia ? config('aura.rentangUsia.' . $campaign->targetUsia) : 'Semua usia' }}</dd></div>
                 <div class="daftar-data-baris"><dt>Minimal Pengikut</dt><dd>{{ number_format($campaign->minimalPengikut, 0, ',', '.') }}</dd></div>
                 <div class="daftar-data-baris"><dt>Periode</dt><dd>{{ $campaign->tanggalMulai->format('d/m/Y') }} - {{ $campaign->tanggalSelesai->format('d/m/Y') }}</dd></div>

@@ -51,7 +51,7 @@
                                 <tr @class(['is-terpilih' => $terpilih?->is($hasil)])>
                                     <td>{{ $hasil->pendaftaran->influencer->pengguna->nama }}</td>
                                     <td>{{ $hasil->pendaftaran->campaign->namaCampaign }}</td>
-                                    <td>{{ $hasil->tanggalPengirimanDraft->format('d/m/Y') }}</td>
+                                    <td>{{ $hasil->tanggalPengirimanDraft->format('d/m/Y H:i') }} WIB</td>
                                     <td><x-status jenis="statusDraft" :nilai="$hasil->statusDraft" /></td>
                                     <td class="kolom-aksi">
                                         <a class="tautan" href="{{ request()->fullUrlWithQuery(['pilih' => $hasil->idHasil]) }}">Periksa</a>
@@ -76,7 +76,10 @@
                         <div><dt>Influencer</dt><dd>{{ $terpilih->pendaftaran->influencer->pengguna->nama }}</dd></div>
                         <div><dt>Campaign</dt><dd>{{ $terpilih->pendaftaran->campaign->namaCampaign }}</dd></div>
                         <div><dt>Akun Media Sosial</dt><dd>{{ $terpilih->akunSosmed->platform }} - &#64;{{ $terpilih->akunSosmed->username }}</dd></div>
-                        <div><dt>Tanggal Kirim Draft</dt><dd>{{ $terpilih->tanggalPengirimanDraft->format('d/m/Y') }}</dd></div>
+                        <div><dt>Tanggal Kirim Draft</dt><dd>{{ $terpilih->tanggalPengirimanDraft->format('d/m/Y H:i') }} WIB</dd></div>
+                        @if ($terpilih->pendaftaran->campaign->kontenSama)
+                            <div><dt>Konten</dt><dd>Sama untuk semua platform. Persetujuan dan feedback berlaku untuk semuanya.</dd></div>
+                        @endif
                     </dl>
 
                     {{-- Tabel 19 langkah 4: sistem menampilkan detail konten --}}

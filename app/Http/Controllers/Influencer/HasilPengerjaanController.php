@@ -77,22 +77,35 @@ class HasilPengerjaanController extends Controller
             ]
         );
 
-        $akun = $influencer->akunSosmed()->where('platform', $data['platform'])->first();
+                // Konten sama: satu draft dipakai untuk semua platform di ketentuan campaign.
+        // Konten berbeda: draft hanya untuk platform yang dipilih.
+        $campaign = $pendaftaran->campaign;
+        $daftarPlatform = $campaign->kontenSama
+            ? $campaign->ketentuanPlatform->pluck('platform')->unique()->values()
+            : collect([$data['platform']]);
 
-        if (! $akun) {
-            return back()->with('gagal', "Anda belum memiliki akun {$data['platform']} di profil.");
+        $target = [];
+
+        foreach ($daftarPlatform as $platform) {
+            $akun = $influencer->akunSosmed()->where('platform', $platform)->first();
+
+            if (! $akun) {
+                return back()->with('gagal', "Anda belum memiliki akun {$platform} di profil.");
+            }
+
+            $hasil = $this->hasilUntukPlatform($pendaftaran, $platform);
+
+            // Draft hanya bisa dikirim kalau belum pernah, atau sedang diminta revisi
+            if ($hasil && $hasil->statusDraft !== 'revisi') {
+                return back()->with('gagal', 'Draft untuk akun ini sedang diperiksa atau sudah disetujui.');
+            }
+
+            $target[] = ['akun' => $akun, 'hasil' => $hasil];
         }
 
-        $hasil = $this->hasilUntukPlatform($pendaftaran, $data['platform']);
-
-        // Draft hanya bisa dikirim kalau belum pernah, atau sedang diminta revisi
-        if ($hasil && $hasil->statusDraft !== 'revisi') {
-            return back()->with('gagal', 'Draft untuk akun ini sedang diperiksa atau sudah disetujui.');
-        }
-
-        // store() memberi nama acak pada berkas, sehingga nama asli dari pengguna tidak dipakai di server
+        // Berkas disimpan sekali. store() memberi nama acak, sehingga nama asli dari pengguna tidak dipakai di server.
         $lokasiBaru = $request->file('draftKonten')->store('draft', 'local');
-        $lokasiLama = $hasil?->draftKonten;
+        $daftarLokasiLama = collect($target)->map(fn ($t) => $t['hasil']?->draftKonten)->filter()->unique();
 
         $isian = [
             'draftKonten' => $lokasiBaru,
@@ -100,19 +113,21 @@ class HasilPengerjaanController extends Controller
             'statusDraft' => 'menunggu',
         ];
 
-        if ($hasil) {
-            $hasil->update($isian);
-        } else {
-            HasilPengerjaan::create([
-                ...$isian,
-                'idPendaftaran' => $pendaftaran->idPendaftaran,
-                'idAkun' => $akun->idAkun,
-                'statusInsight' => 'belum_dikirim',
-            ]);
+        foreach ($target as $t) {
+            if ($t['hasil']) {
+                $t['hasil']->update($isian);
+            } else {
+                HasilPengerjaan::create([
+                    ...$isian,
+                    'idPendaftaran' => $pendaftaran->idPendaftaran,
+                    'idAkun' => $t['akun']->idAkun,
+                    'statusInsight' => 'belum_dikirim',
+                ]);
+            }
         }
 
         // Berkas draft lama (sebelum revisi) dihapus supaya penyimpanan tidak menumpuk
-        if ($lokasiLama) {
+        foreach ($daftarLokasiLama as $lokasiLama) {
             Storage::disk('local')->delete($lokasiLama);
         }
 

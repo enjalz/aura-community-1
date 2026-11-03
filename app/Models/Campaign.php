@@ -31,6 +31,7 @@ class Campaign extends ModelAura
             'tanggalUnggahSelesai' => 'date',
             'minimalPengikut' => 'integer',
             'wajibHadir' => 'boolean',
+            'kontenSama' => 'boolean',
         ];
     }
 
