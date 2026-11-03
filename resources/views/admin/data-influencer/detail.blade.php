@@ -53,9 +53,37 @@
                             <dt>{{ $namaPlatform }}</dt>
                             <dd>
                                 @if ($akun)
-                                    &#64;{{ $akun->username }} ({{ number_format($akun->jumlahPengikut, 0, ',', '.') }} pengikut)
+                                    {{-- Status verifikasi akun media sosial --}}
+                                    <div class="mb-1">
+                                        @if ($akun->statusVerifikasi === 'menunggu')
+                                            <span class="badge-status badge-menunggu">Menunggu verifikasi</span>
+                                            <a class="tautan" href="{{ route('admin.verifikasi') }}">Periksa</a>
+                                        @elseif ($akun->statusVerifikasi === 'ditolak')
+                                            <span class="badge-status badge-ditolak">Ditolak</span>
+                                        @else
+                                            <span class="badge-status badge-diverifikasi">Terverifikasi</span>
+                                        @endif
+                                    </div>
+
+                                    <span @class(['teks-redup' => ! $akun->terverifikasi()])>
+                                        &#64;{{ $akun->username }} ({{ number_format($akun->jumlahPengikut, 0, ',', '.') }} pengikut)
+                                    </span>
                                     @if (\Illuminate\Support\Str::startsWith($akun->linkProfil, ['https://', 'http://']))
                                         - <a class="tautan" href="{{ $akun->linkProfil }}" target="_blank" rel="noopener noreferrer">Lihat profil</a>
+                                    @endif
+
+                                    {{-- Data audiens dan bukti screenshot --}}
+                                    <div class="teks-redup">
+                                        Audiens: {{ $akun->domisiliAudiens ?? '-' }}
+                                        · {{ $akun->usiaDominan ? config('aura.rentangUsia.' . $akun->usiaDominan) : '-' }}
+                                        · {{ $akun->genderDominan ? config('aura.genderAudiens.' . $akun->genderDominan) : '-' }}
+                                        @if ($akun->fileDemografi)
+                                            · <a class="tautan" href="{{ route('berkas.demografi', $akun) }}" target="_blank" rel="noopener noreferrer">Screenshot</a>
+                                        @endif
+                                    </div>
+
+                                    @if ($akun->statusVerifikasi === 'ditolak' && $akun->alasanPenolakan)
+                                        <div class="teks-redup">Alasan ditolak: {{ $akun->alasanPenolakan }}</div>
                                     @endif
                                 @else
                                     -

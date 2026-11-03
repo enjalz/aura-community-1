@@ -44,12 +44,21 @@
                 <div class="daftar-data-baris"><dt>Target Audiens</dt><dd>{{ $campaign->targetAudiens }}</dd></div>
                 <div class="daftar-data-baris"><dt>Kategori Influencer</dt><dd>{{ $campaign->kategoriInfluencer }}</dd></div>
                 <div class="daftar-data-baris"><dt>Kehadiran</dt><dd>{{ $campaign->wajibHadir ? 'Wajib datang langsung ke lokasi' : 'Tidak wajib hadir' }}</dd></div>
+                <div class="daftar-data-baris"><dt>Konten</dt><dd>{{ $campaign->kontenSama ? 'Sama untuk semua platform (draft dikirim sekali)' : 'Berbeda per platform' }}</dd></div>
                 <div class="daftar-data-baris"><dt>Target Usia Audiens</dt><dd>{{ $campaign->targetUsia ? config('aura.rentangUsia.' . $campaign->targetUsia) : 'Semua usia' }}</dd></div>
                 <div class="daftar-data-baris"><dt>Minimal Pengikut</dt><dd>{{ number_format($campaign->minimalPengikut, 0, ',', '.') }}</dd></div>
                 <div class="daftar-data-baris"><dt>Periode</dt><dd>{{ $campaign->tanggalMulai->format('d/m/Y') }} - {{ $campaign->tanggalSelesai->format('d/m/Y') }}</dd></div>
                 <div class="daftar-data-baris"><dt>Periode Unggah</dt><dd>{{ $campaign->periodeUnggah() ?? '-' }}</dd></div>
                 <div class="daftar-data-baris"><dt>Fee per Influencer</dt><dd><x-rupiah :nilai="$campaign->feePerInfluencer" /></dd></div>
-                <div class="daftar-data-baris"><dt>Kuota Influencer</dt><dd>{{ $jumlahDiterima }} diterima dari kuota {{ $campaign->kuotaInfluencer }}</dd></div>
+                <div class="daftar-data-baris">
+                    <dt>Kuota Influencer</dt>
+                    <dd>
+                        {{ $jumlahDiterima }} diterima dari kuota {{ $campaign->kuotaInfluencer }}
+                        @if ($jumlahDiterima >= $campaign->kuotaInfluencer)
+                            <span class="badge-status badge-menunggu">Kuota penuh</span>
+                        @endif
+                    </dd>
+                </div>
                 <div class="daftar-data-baris">
                     <dt>Estimasi Jangkauan</dt>
                     <dd>
@@ -115,11 +124,17 @@
             ER, view rate, dan estimasi dihitung dari insight campaign sebelumnya yang telah disetujui.
             Label <strong>Perlu diperiksa</strong> muncul jika view rate kurang dari {{ config('aura.seleksi.ambangViewRate') }}%
             rata-rata akun lain pada platform dan rentang pengikut yang sama.
+            Akun yang belum terverifikasi tidak ikut dihitung.
         </p>
 
         @if ($campaign->pendaftaran->isEmpty())
             <div class="kosong">Belum ada influencer yang mendaftar campaign ini.</div>
         @else
+            @php
+                $kuotaPenuh = $jumlahDiterima >= $campaign->kuotaInfluencer;
+                $platformCampaign = $campaign->ketentuanPlatform->pluck('platform')->unique()->all();
+            @endphp
+
             <div class="tabel-wrap">
                 <table class="tabel-aura">
                     <thead>
@@ -141,6 +156,11 @@
                                 $baris = $seleksi[$pendaftaran->idPendaftaran];
                                 $cocok = $baris->kecocokan;
                                 $tidakCocok = collect($cocok['rincian'])->reject(fn ($sesuai) => $sesuai)->keys();
+
+                                // Akun di platform campaign yang belum terverifikasi: ditampilkan, tetapi tidak dihitung
+                                $akunBelumTerverifikasi = $influencer->akunSosmed
+                                    ->whereIn('platform', $platformCampaign)
+                                    ->reject(fn ($akun) => $akun->terverifikasi());
                             @endphp
                             <tr>
                                 <td>
@@ -154,6 +174,7 @@
                                     @endif
                                 </td>
                                 <td>
+                                    {{-- Akun terverifikasi: dipakai untuk kecocokan, ER, view rate, dan estimasi --}}
                                     @foreach ($baris->akun as $akun)
                                         <div @class(['mt-2' => ! $loop->first])>
                                             {{ $akun->platform }} {{ number_format($akun->jumlahPengikut, 0, ',', '.') }}
@@ -170,6 +191,23 @@
                                             </div>
                                         </div>
                                     @endforeach
+
+                                    {{-- Akun belum terverifikasi: hanya ditandai, angkanya tidak dihitung --}}
+                                    @foreach ($akunBelumTerverifikasi as $akun)
+                                        <div @class(['mt-2' => $baris->akun->isNotEmpty() || ! $loop->first])>
+                                            <span class="teks-redup">{{ $akun->platform }} {{ number_format($akun->jumlahPengikut, 0, ',', '.') }}</span>
+                                            @if ($akun->statusVerifikasi === 'menunggu')
+                                                <span class="badge-status badge-menunggu">Menunggu verifikasi</span>
+                                                <a class="tautan" href="{{ route('admin.verifikasi') }}">Periksa</a>
+                                            @else
+                                                <span class="badge-status badge-ditolak">Ditolak</span>
+                                            @endif
+                                        </div>
+                                    @endforeach
+
+                                    @if ($baris->akun->isEmpty() && $akunBelumTerverifikasi->isEmpty())
+                                        <span class="teks-redup">-</span>
+                                    @endif
                                 </td>
                                 <td>
                                     <span @class([
@@ -199,11 +237,16 @@
                                 <td class="kolom-aksi">
                                     @if ($pendaftaran->statusPendaftaran === 'menunggu')
                                         <div class="aksi-baris">
-                                            <form method="POST" action="{{ route('admin.campaign.pendaftar.terima', [$campaign, $pendaftaran]) }}" class="form-sebaris"
-                                                  data-konfirmasi="Terima {{ $baris->nama }} di campaign ini?">
-                                                @csrf
-                                                <button type="submit" class="btn-aura btn-aura-primary btn-aura-sm">Terima</button>
-                                            </form>
+                                            {{-- Kuota penuh: tombol Terima diganti keterangan, Tolak tetap ada --}}
+                                            @if ($kuotaPenuh)
+                                                <span class="teks-redup">Kuota penuh</span>
+                                            @else
+                                                <form method="POST" action="{{ route('admin.campaign.pendaftar.terima', [$campaign, $pendaftaran]) }}" class="form-sebaris"
+                                                      data-konfirmasi="Terima {{ $baris->nama }} di campaign ini?">
+                                                    @csrf
+                                                    <button type="submit" class="btn-aura btn-aura-primary btn-aura-sm">Terima</button>
+                                                </form>
+                                            @endif
                                             <form method="POST" action="{{ route('admin.campaign.pendaftar.tolak', [$campaign, $pendaftaran]) }}" class="form-sebaris"
                                                   data-konfirmasi="Tolak pendaftaran {{ $baris->nama }}?">
                                                 @csrf

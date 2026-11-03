@@ -148,7 +148,7 @@ textarea.input-aura {
 }
 
 .teks-bantuan {
-    margin: 0;
+    margin: 10;
     font-size: var(--text-caption);
     color: var(--color-muted);
 }

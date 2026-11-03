@@ -63,8 +63,34 @@
                         <tr>
                             <td>{{ $influencer->pengguna->nama }}</td>
                             <td>{{ $influencer->kategori }}</td>
-                            <td>{{ $instagram ? number_format($instagram->jumlahPengikut, 0, ',', '.') : '-' }}</td>
-                            <td>{{ $tiktok ? number_format($tiktok->jumlahPengikut, 0, ',', '.') : '-' }}</td>
+
+                            {{-- Akun yang belum terverifikasi atau ditolak ditulis redup dan diberi keterangan,
+                                 supaya angkanya tidak dianggap data yang sudah benar --}}
+                            <td>
+                                @if ($instagram)
+                                    <span @class(['teks-redup' => ! $instagram->terverifikasi()])>{{ number_format($instagram->jumlahPengikut, 0, ',', '.') }}</span>
+                                    @if ($instagram->statusVerifikasi === 'menunggu')
+                                        <small class="teks-redup">(menunggu verifikasi)</small>
+                                    @elseif ($instagram->statusVerifikasi === 'ditolak')
+                                        <small class="teks-redup">(ditolak)</small>
+                                    @endif
+                                @else
+                                    -
+                                @endif
+                            </td>
+                            <td>
+                                @if ($tiktok)
+                                    <span @class(['teks-redup' => ! $tiktok->terverifikasi()])>{{ number_format($tiktok->jumlahPengikut, 0, ',', '.') }}</span>
+                                    @if ($tiktok->statusVerifikasi === 'menunggu')
+                                        <small class="teks-redup">(menunggu verifikasi)</small>
+                                    @elseif ($tiktok->statusVerifikasi === 'ditolak')
+                                        <small class="teks-redup">(ditolak)</small>
+                                    @endif
+                                @else
+                                    -
+                                @endif
+                            </td>
+
                             <td>
                                 @if ($influencer->statusBlacklist)
                                     <span class="badge-status badge-blacklist">Blacklist</span>

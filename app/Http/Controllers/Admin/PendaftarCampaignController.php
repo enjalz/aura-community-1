@@ -6,6 +6,7 @@ use App\Http\Controllers\Controller;
 use App\Models\Campaign;
 use App\Models\PendaftaranCampaign;
 use Illuminate\Http\RedirectResponse;
+use Illuminate\Support\Str;
 
 // Pemilihan influencer pendaftar campaign (Batasan 7: "pemilihan Influencer").
 // Influencer yang diterima dapat mengirim hasil pengerjaan (syarat Tabel 18).
@@ -17,6 +18,20 @@ class PendaftarCampaignController extends Controller
 
         if ($pendaftaran->influencer->statusBlacklist) {
             return back()->with('gagal', 'Influencer ini berstatus blacklist, sehingga tidak dapat diterima.');
+        }
+
+        // Akun untuk platform campaign harus sudah diverifikasi.
+        // Influencer bisa saja mengubah akunnya setelah mendaftar, sehingga statusnya kembali menunggu.
+        $platformCampaign = $campaign->ketentuanPlatform->pluck('platform')->map(fn ($platform) => Str::lower($platform));
+        $belumTerverifikasi = $pendaftaran->influencer->akunSosmed
+            ->filter(fn ($akun) => $platformCampaign->contains(Str::lower($akun->platform)))
+            ->reject(fn ($akun) => $akun->terverifikasi())
+            ->pluck('platform');
+
+        if ($belumTerverifikasi->isNotEmpty()) {
+            $daftarPlatform = $belumTerverifikasi->join(', ', ' dan ');
+
+            return back()->with('gagal', "Akun {$daftarPlatform} milik influencer ini belum terverifikasi. Periksa dulu di menu Verifikasi Akun.");
         }
 
         $jumlahDiterima = $campaign->pendaftaran()->where('statusPendaftaran', 'diterima')->count();
