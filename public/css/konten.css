@@ -383,6 +383,10 @@ a.paginasi-item:hover {
     max-width: 760px;
 }
 
+.form-sempit .form-kartu {
+    height: auto;
+}
+
 /* ---------------------------------------------------------------------
    LABEL STATUS CAMPAIGN DAN PENDAFTARAN
    Dipakai dengan: class="badge-status badge-{{ $status }}"

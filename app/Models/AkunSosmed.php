@@ -7,6 +7,7 @@ use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Support\Collection;
 use Illuminate\Validation\Rule;
+use Illuminate\Support\Facades\Auth;
 
 // Tabel 31
 class AkunSosmed extends ModelAura
@@ -16,7 +17,41 @@ class AkunSosmed extends ModelAura
     protected $fillable = [
         'idPengguna', 'platform', 'username', 'linkProfil', 'jumlahPengikut',
         'domisiliAudiens', 'usiaDominan', 'genderDominan', 'fileDemografi',
+        'statusVerifikasi', 'alasanPenolakan',
     ];
+
+    // Kolom yang kalau diubah influencer membuat akun perlu diverifikasi ulang oleh Admin
+    private const KOLOM_DIVERIFIKASI = [
+        'username', 'linkProfil', 'jumlahPengikut',
+        'domisiliAudiens', 'usiaDominan', 'genderDominan', 'fileDemografi',
+    ];
+
+    // Berjalan otomatis setiap kali akun disimpan lewat Eloquent (create, update, updateOrCreate).
+    // Pembaruan pengikut dari insight yang disetujui memakai query langsung, jadi tidak ikut diperiksa di sini.
+    protected static function booted(): void
+    {
+        static::saving(function (AkunSosmed $akun) {
+            // Perubahan oleh Admin tidak perlu diverifikasi ulang
+            if (Auth::check() && Admin::whereKey(Auth::id())->exists()) {
+                return;
+            }
+
+            // Akun baru selalu diperiksa. Akun lama hanya kalau kolom penting berubah.
+            if ($akun->exists && ! $akun->isDirty(self::KOLOM_DIVERIFIKASI)) {
+                return;
+            }
+
+            // Akun dari registrasi diperiksa bersama verifikasi influencer, jadi tidak perlu status sendiri
+            $influencerTerverifikasi = Influencer::whereKey($akun->idPengguna)
+                ->where('statusVerifikasi', 'diverifikasi')
+                ->exists();
+
+            if ($influencerTerverifikasi) {
+                $akun->statusVerifikasi = 'menunggu';
+                $akun->alasanPenolakan = null;
+            }
+        });
+    }
 
     public function influencer(): BelongsTo
     {
@@ -26,6 +61,12 @@ class AkunSosmed extends ModelAura
     public function hasilPengerjaan(): HasMany
     {
         return $this->hasMany(HasilPengerjaan::class, 'idAkun');
+    }
+
+    // Akun boleh dipakai mendaftar campaign kalau sudah diverifikasi Admin
+    public function terverifikasi(): bool
+    {
+        return $this->statusVerifikasi === 'diverifikasi';
     }
 
     // Insight yang sudah disetujui Admin dari campaign-campaign sebelumnya

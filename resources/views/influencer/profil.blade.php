@@ -1,5 +1,5 @@
 {{-- Profil Influencer (wireframe Gambar 86, Tabel 7).
-     Kiri: Data Diri. Kanan: Akun Media Sosial (termasuk demografi audiens) dan Rekening. --}}
+     Kiri: Data Diri. Kanan: Akun Media Sosial (termasuk demografi audiens dan status verifikasi) dan Rekening. --}}
 @extends('layouts.dashboard')
 
 @section('title', 'Profil - Aura Community')
@@ -64,6 +64,7 @@
                 {{-- ===== AKUN MEDIA SOSIAL ===== --}}
                 <section class="form-kartu">
                     <h2 class="form-judul">Akun Media Sosial</h2>
+                    <p class="teks-bantuan">Akun yang ditambah atau diubah akan diperiksa Admin sebelum dapat dipakai untuk mendaftar campaign.</p>
 
                     @error('sosmed')
                         <div class="alert-aura alert-gagal" role="alert">{{ $message }}</div>
@@ -79,6 +80,26 @@
                         @endunless
 
                         <p class="form-sub">{{ $namaPlatform }}</p>
+
+                        {{-- Status verifikasi akun media sosial --}}
+                        @if ($akun)
+                            @if ($akun->statusVerifikasi === 'menunggu')
+                                <div class="catatan">
+                                    <i class="bi bi-hourglass-split" aria-hidden="true"></i>
+                                    Akun {{ $namaPlatform }} sedang menunggu verifikasi Admin. Akun ini belum dapat dipakai untuk mendaftar campaign.
+                                </div>
+                            @elseif ($akun->statusVerifikasi === 'ditolak')
+                                <div class="alert-aura alert-gagal" role="alert">
+                                    <strong>Akun {{ $namaPlatform }} ditolak.</strong> {{ $akun->alasanPenolakan }}
+                                    Perbaiki data di bawah, lalu simpan untuk diperiksa ulang.
+                                </div>
+                            @else
+                                <div>
+                                    <span class="badge-status badge-diverifikasi">Terverifikasi</span>
+                                </div>
+                            @endif
+                        @endif
+
                         <div class="row g-3">
                             <div class="col-md-6">
                                 <x-input :name="$kunci . '_username'" label="Username" :value="$akun?->username" placeholder="username" />

@@ -62,6 +62,10 @@ Route::middleware('auth')->group(function () {
         Route::post('/verifikasi-akun/{influencer}/setujui', [VerifikasiAkunController::class, 'setujui'])->name('verifikasi.setujui');
         Route::post('/verifikasi-akun/{influencer}/tolak', [VerifikasiAkunController::class, 'tolak'])->name('verifikasi.tolak');
 
+        // Verifikasi akun media sosial yang ditambah atau diubah influencer
+        Route::post('/verifikasi-akun/sosmed/{akun}/setujui', [VerifikasiAkunController::class, 'setujuiAkunSosmed'])->name('verifikasi.sosmed.setujui');
+        Route::post('/verifikasi-akun/sosmed/{akun}/tolak', [VerifikasiAkunController::class, 'tolakAkunSosmed'])->name('verifikasi.sosmed.tolak');
+
         // Data Influencer (Tabel 10) dan Blacklist (Tabel 11)
         Route::controller(DataInfluencerController::class)->prefix('data-influencer')->name('influencer')->group(function () {
             Route::get('/', 'index');

@@ -115,14 +115,15 @@ class CampaignController extends Controller
     }
 
     // Campaign yang boleh dilihat influencer:
-    // yang sedang Berjalan dan belum lewat tanggal selesai, ditambah yang pernah ia daftarkan
-    // (supaya influencer tetap bisa melihat campaign yang ia ikuti walaupun sudah berakhir).
+    // 1. Sedang Berjalan dan belum lewat Tanggal Selesai, atau
+    // 2. Pernah ia daftarkan (tetap terlihat sebagai riwayat walaupun sudah lewat)
     private function campaignTerlihat(Influencer $influencer): Builder
     {
         return Campaign::query()->where(function ($query) use ($influencer) {
-            $query->where(fn ($q) => $q
-                    ->where('statusCampaign', 'berjalan')
-                    ->whereDate('tanggalSelesai', '>=', today()))
+            $query->where(function ($q) {
+                    $q->where('statusCampaign', 'berjalan')
+                      ->whereDate('tanggalSelesai', '>=', today());
+                })
                 ->orWhereIn('idCampaign', $influencer->pendaftaran()->select('idCampaign'));
         });
     }
@@ -158,8 +159,9 @@ class CampaignController extends Controller
         // dan pembayaran tidak bisa diproses karena setiap platform di ketentuan harus punya hasil pengerjaan.
         $platformDibutuhkan = $campaign->ketentuanPlatform->pluck('platform')->unique();
 
-        // Platform milik influencer, dijadikan huruf kecil supaya "TikTok" dan "tiktok" dianggap sama
-        $platformSaya = $influencer->akunSosmed()->pluck('platform')->map(fn ($platform) => Str::lower($platform));
+        // Akun milik influencer. Platform dijadikan huruf kecil supaya "TikTok" dan "tiktok" dianggap sama.
+        $akunSaya = $influencer->akunSosmed()->get();
+        $platformSaya = $akunSaya->pluck('platform')->map(fn ($platform) => Str::lower($platform));
 
         // Platform yang dibutuhkan campaign tetapi belum dimiliki influencer
         $belumPunya = $platformDibutuhkan
@@ -171,6 +173,20 @@ class CampaignController extends Controller
             $daftarPlatform = $belumPunya->join(', ', ' dan ');
 
             return "Anda belum memiliki akun {$daftarPlatform}. Tambahkan akun {$daftarPlatform} di menu Profil untuk mengikuti campaign ini.";
+        }
+
+        // Akun untuk platform yang dibutuhkan harus sudah diverifikasi Admin.
+        // Akun yang baru ditambah atau diubah di Profil berstatus menunggu sampai diperiksa Admin.
+        $belumTerverifikasi = $akunSaya
+            ->filter(fn ($akun) => $platformDibutuhkan->contains(fn ($platform) => Str::lower($platform) === Str::lower($akun->platform)))
+            ->reject(fn ($akun) => $akun->terverifikasi())
+            ->pluck('platform')
+            ->values();
+
+        if ($belumTerverifikasi->isNotEmpty()) {
+            $daftarPlatform = $belumTerverifikasi->join(', ', ' dan ');
+
+            return "Akun {$daftarPlatform} Anda belum terverifikasi oleh Admin. Lihat statusnya di menu Profil.";
         }
 
         $jumlahDiterima = $campaign->pendaftaran()->where('statusPendaftaran', 'diterima')->count();

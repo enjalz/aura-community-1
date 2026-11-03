@@ -28,7 +28,8 @@ class ProfilController extends Controller
         $pengguna = $request->user();
         $influencer = $pengguna->influencer;
 
-        // Pengguna, Influencer, AkunSosmed, dan RekeningInfluencer disimpan bersama
+        // Pengguna, Influencer, AkunSosmed, dan RekeningInfluencer disimpan bersama.
+        // Akun media sosial yang ditambah atau diubah otomatis berstatus menunggu verifikasi (lihat AkunSosmed::booted).
         DB::transaction(function () use ($pengguna, $influencer, $data) {
             $pengguna->perbaruiProfil($data);
             $influencer->update(['kategori' => $data['kategori']]);
@@ -45,6 +46,10 @@ class ProfilController extends Controller
             }
         });
 
-        return redirect()->route('influencer.profil')->with('sukses', 'Profil berhasil diperbarui.');
+        $pesan = $influencer->akunSosmed()->where('statusVerifikasi', 'menunggu')->exists()
+            ? 'Profil berhasil diperbarui. Akun media sosial yang ditambah atau diubah menunggu verifikasi Admin.'
+            : 'Profil berhasil diperbarui.';
+
+        return redirect()->route('influencer.profil')->with('sukses', $pesan);
     }
 }

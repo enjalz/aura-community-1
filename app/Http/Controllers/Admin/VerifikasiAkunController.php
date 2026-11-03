@@ -3,12 +3,14 @@
 namespace App\Http\Controllers\Admin;
 
 use App\Http\Controllers\Controller;
+use App\Models\AkunSosmed;
 use App\Models\Influencer;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\View\View;
 
-// Use case Verifikasi Akun (Tabel 8, Activity Diagram Gambar 16, Sequence Diagram Gambar 39)
+// Use case Verifikasi Akun (Tabel 8, Activity Diagram Gambar 16, Sequence Diagram Gambar 39).
+// Bagian atas: akun influencer baru. Bagian bawah: akun media sosial yang ditambah atau diubah.
 class VerifikasiAkunController extends Controller
 {
     private const PER_HALAMAN = 5;
@@ -34,9 +36,17 @@ class VerifikasiAkunController extends Controller
         $terpilih ??= $daftar->first();
         $terpilih?->load(['pengguna', 'akunSosmed']);
 
+        // Akun media sosial yang ditambah atau diubah oleh influencer yang sudah terverifikasi
+        $akunMenunggu = AkunSosmed::with('influencer.pengguna')
+            ->where('statusVerifikasi', 'menunggu')
+            ->whereHas('influencer', fn ($q) => $q->where('statusVerifikasi', 'diverifikasi'))
+            ->orderBy('idAkun')
+            ->get();
+
         return view('admin.verifikasi-akun', [
             'daftar' => $daftar,
             'terpilih' => $terpilih,
+            'akunMenunggu' => $akunMenunggu,
         ]);
     }
 
@@ -50,6 +60,45 @@ class VerifikasiAkunController extends Controller
     public function tolak(Influencer $influencer): RedirectResponse
     {
         return $this->ubahStatus($influencer, 'ditolak', 'ditolak');
+    }
+
+    // Akun media sosial baru atau diubah: disetujui, sehingga bisa dipakai mendaftar campaign
+    public function setujuiAkunSosmed(AkunSosmed $akun): RedirectResponse
+    {
+        // Syarat 'menunggu' mencegah proses dobel (klik ganda atau dua tab)
+        $jumlahBerubah = AkunSosmed::whereKey($akun->idAkun)
+            ->where('statusVerifikasi', 'menunggu')
+            ->update(['statusVerifikasi' => 'diverifikasi', 'alasanPenolakan' => null]);
+
+        if ($jumlahBerubah === 0) {
+            return redirect()->route('admin.verifikasi')->with('gagal', 'Akun ini sudah diproses sebelumnya.');
+        }
+
+        return redirect()->route('admin.verifikasi')
+            ->with('sukses', "Akun {$akun->platform} @{$akun->username} berhasil diverifikasi.");
+    }
+
+    // Akun media sosial baru atau diubah: ditolak dengan alasan, influencer memperbaikinya di Profil
+    public function tolakAkunSosmed(Request $request, AkunSosmed $akun): RedirectResponse
+    {
+        $data = $request->validate(
+            ['alasan' => ['required', 'string', 'max:500']],
+            [
+                'alasan.required' => 'Tulis alasan penolakan supaya influencer tahu apa yang perlu diperbaiki.',
+                'alasan.max' => 'Alasan maksimal 500 karakter.',
+            ]
+        );
+
+        $jumlahBerubah = AkunSosmed::whereKey($akun->idAkun)
+            ->where('statusVerifikasi', 'menunggu')
+            ->update(['statusVerifikasi' => 'ditolak', 'alasanPenolakan' => $data['alasan']]);
+
+        if ($jumlahBerubah === 0) {
+            return redirect()->route('admin.verifikasi')->with('gagal', 'Akun ini sudah diproses sebelumnya.');
+        }
+
+        return redirect()->route('admin.verifikasi')
+            ->with('sukses', "Akun {$akun->platform} @{$akun->username} ditolak.");
     }
 
     // Syarat statusVerifikasi = 'menunggu' membuat satu akun hanya bisa diproses sekali.

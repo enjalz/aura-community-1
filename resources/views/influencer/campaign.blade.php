@@ -163,12 +163,10 @@
                         </div>
 
                     @else
-                        {{-- Memenuhi semua kriteria: tampilkan form pendaftaran --}}
-                        @php
-                            $pesanKonfirmasi = $terpilih->wajibHadir
-                                ? "Campaign ini mewajibkan Anda datang langsung ke {$terpilih->lokasiCampaign}. Apakah Anda bersedia hadir?"
-                                : "Daftar ke {$terpilih->namaCampaign}?";
-                        @endphp
+                        {{-- Memenuhi semua kriteria: tampilkan form pendaftaran.
+                             Campaign wajib hadir memakai pesan konfirmasi kesediaan hadir. --}}
+                        @php($pesanKonfirmasi = $terpilih->wajibHadir ? "Campaign ini mewajibkan Anda datang langsung ke {$terpilih->lokasiCampaign}. Apakah Anda bersedia hadir?" : "Daftar ke {$terpilih->namaCampaign}?")
+
                         <form method="POST" action="{{ route('influencer.campaign.daftar', $terpilih) }}" class="tumpukan-kecil"
                             data-konfirmasi="{{ $pesanKonfirmasi }}" novalidate>
                             @csrf
