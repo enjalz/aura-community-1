@@ -55,12 +55,23 @@ class HasilPengerjaanController extends Controller
         $data = $request->validate(
             [
                 'platform' => ['required', Rule::in($pendaftaran->campaign->ketentuanPlatform->pluck('platform')->all())],
-                'draftKonten' => ['required', 'file', 'mimes:' . $aturanBerkas['ekstensi'], 'max:' . $aturanBerkas['maksimal']],
+                'draftKonten' => [
+                    'required', 'file', 'mimes:' . $aturanBerkas['ekstensi'],
+                    'max:' . $aturanBerkas['maksimal'],   // batas umum = batas video (500 MB)
+
+                    // Foto punya batas lebih kecil dari video
+                    function (string $atribut, $berkas, \Closure $gagal) use ($aturanBerkas) {
+                        if (str_starts_with((string) $berkas->getMimeType(), 'image/')
+                            && $berkas->getSize() > $aturanBerkas['maksimalFoto'] * 1024) {
+                            $gagal('Ukuran foto maksimal ' . ($aturanBerkas['maksimalFoto'] / 1024) . ' MB.');
+                        }
+                    },
+                ],
             ],
             [
                 'draftKonten.required' => 'Pilih berkas draft yang akan dikirim.',
                 'draftKonten.mimes' => 'Format berkas harus ' . str_replace(',', ', ', $aturanBerkas['ekstensi']) . '.',
-                'draftKonten.max' => 'Ukuran berkas maksimal 100 MB.',
+                'draftKonten.max' => 'Ukuran video maksimal ' . ($aturanBerkas['maksimal'] / 1024) . ' MB.',
                 'draftKonten.uploaded' => 'Berkas gagal diunggah. Ukurannya mungkin melebihi batas server.',
                 'platform.in' => 'Platform tidak sesuai dengan ketentuan campaign.',
             ]
@@ -85,7 +96,7 @@ class HasilPengerjaanController extends Controller
 
         $isian = [
             'draftKonten' => $lokasiBaru,
-            'tanggalPengirimanDraft' => now()->toDateString(),
+            'tanggalPengirimanDraft' => now(),
             'statusDraft' => 'menunggu',
         ];
 
@@ -175,7 +186,7 @@ class HasilPengerjaanController extends Controller
             'jumlahShare' => $data['jumlahShare'],
             'jumlahSave' => $data['jumlahSave'],
             'jumlahPengikut' => $data['jumlahPengikut'],
-            'tanggalPengirimanInsight' => now()->toDateString(),
+            'tanggalPengirimanInsight' => now(),
             'statusInsight' => 'menunggu',
         ]);
 

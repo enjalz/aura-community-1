@@ -7,6 +7,10 @@
 @section('title', 'Hasil Pengerjaan - Aura Community')
 @section('judul', 'Hasil Pengerjaan')
 
+@push('scripts')
+    <script src="{{ asset('js/ukuran-berkas.js') }}"></script>
+@endpush
+
 @section('isi')
     @include('partials.peringatan-blacklist')
 
@@ -126,7 +130,7 @@
                         </div>
                         <div class="field">
                             <span class="field-label">Tanggal Kirim Draft</span>
-                            <div class="kotak-berkas">{{ $hasil->tanggalPengirimanDraft->format('d/m/Y') }}</div>
+                            <div class="kotak-berkas">{{ $hasil->tanggalPengirimanDraft->format('d/m/Y H:i') }} WIB</div>
                         </div>
 
                         {{-- Catatan dari Admin, terbaru di atas (Tabel 20 langkah 4) --}}
@@ -163,11 +167,13 @@
                                 <div class="field">
                                     <label for="draftKonten" class="field-label">{{ $hasil ? 'Unggah Draft Revisi' : 'Unggah Berkas Draft' }}</label>
                                     <input type="file" id="draftKonten" name="draftKonten" accept=".mp4,.mov,.webm,.jpg,.jpeg,.png"
-                                           @class(['input-aura', 'input-berkas', 'is-invalid' => $errors->has('draftKonten')])>
+                                        data-maks-video="{{ config('aura.berkas.draft.maksimal') / 1024 }}"
+                                        data-maks-foto="{{ config('aura.berkas.draft.maksimalFoto') / 1024 }}"
+                                        @class(['input-aura', 'input-berkas', 'is-invalid' => $errors->has('draftKonten')])>
                                     @error('draftKonten')
                                         <p class="pesan-error">{{ $message }}</p>
                                     @enderror
-                                    <p class="teks-bantuan">Video (mp4, mov, webm) atau gambar (jpg, png), maksimal 100 MB.</p>
+                                    <p class="teks-bantuan">Video (mp4, mov, webm) maksimal 500 MB, atau foto (jpg, png) maksimal 10 MB.</p>
                                 </div>
 
                                 <button type="submit" class="btn-aura btn-aura-primary">{{ $hasil ? 'Kirim Ulang Draft' : 'Kirim Draft' }}</button>
@@ -258,6 +264,12 @@
                                 <a class="tautan" href="{{ route('berkas.hasil', [$hasil, 'insight']) }}" target="_blank" rel="noopener">Lihat tangkapan layar</a>
                             </div>
                         </div>
+                        @if ($hasil->tanggalPengirimanInsight)
+                            <div class="field">
+                                <span class="field-label">Tanggal Kirim Insight</span>
+                                <div class="kotak-berkas">{{ $hasil->tanggalPengirimanInsight->format('d/m/Y H:i') }} WIB</div>
+                            </div>
+                        @endif
                         <div class="metrik">
                             <div class="kotak-angka"><span>Views</span><strong>{{ number_format($hasil->jumlahViews, 0, ',', '.') }}</strong></div>
                             <div class="kotak-angka"><span>Likes</span><strong>{{ number_format($hasil->jumlahLikes, 0, ',', '.') }}</strong></div>
