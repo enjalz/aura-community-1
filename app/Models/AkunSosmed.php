@@ -117,7 +117,7 @@ class AkunSosmed extends ModelAura
     public static function namaKolomDemografi(string $kunci, string $nama): array
     {
         return [
-            "{$kunci}_domisili" => "Domisili audiens {$nama}",
+            "{$kunci}_domisili" => "Lokasi audiens {$nama}",
             "{$kunci}_usia" => "Usia dominan audiens {$nama}",
             "{$kunci}_gender" => "Gender dominan audiens {$nama}",
             "{$kunci}_demografi" => "Screenshot insight audiens {$nama}",

@@ -9,7 +9,7 @@
 </div>
 
 <div class="col-md-4">
-    <x-input :name="$kunci . '_domisili'" label="Domisili Audiens" :value="$akun?->domisiliAudiens" placeholder="Contoh: Jakarta" />
+    <x-input :name="$kunci . '_domisili'" label="Lokasi Audiens (Negara)" :value="$akun?->domisiliAudiens" placeholder="Contoh: Indonesia" />
 </div>
 
 <div class="col-md-4">

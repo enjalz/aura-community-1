@@ -48,23 +48,19 @@ class PendaftaranCampaign extends ModelAura
         return $platform->isEmpty() ? $akun : $akun->whereIn('platform', $platform->all())->values();
     }
 
-    // Tingkat kecocokan influencer dengan target campaign (skor dari 4 kriteria)
+        // Tingkat kecocokan influencer dengan target campaign (skor dari 4 kriteria)
     public function hitungKecocokan(): array
     {
         $campaign = $this->campaign;
         $akun = $this->akunRelevan();
-        $lokasi = mb_strtolower(trim((string) $campaign->lokasiCampaign));
 
         $rincian = [
             'kategori' => $this->influencer->kategori === $campaign->kategoriInfluencer,
 
-            // "Nasional" atau "Indonesia" berarti tidak membatasi lokasi
-            'lokasi' => in_array($lokasi, ['', 'nasional', 'indonesia'], true)
-                || $akun->contains(function (AkunSosmed $a) use ($lokasi) {
-                    $domisili = mb_strtolower(trim((string) $a->domisiliAudiens));
-
-                    return $domisili !== '' && (str_contains($domisili, $lokasi) || str_contains($lokasi, $domisili));
-                }),
+            // Lokasi audiens berupa negara teratas di analytics akun
+            'lokasi' => $akun->contains(
+                fn (AkunSosmed $a) => mb_strtolower(trim((string) $a->domisiliAudiens)) === 'indonesia'
+            ),
 
             'usia' => ! $campaign->targetUsia || $akun->contains('usiaDominan', $campaign->targetUsia),
 

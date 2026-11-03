@@ -31,8 +31,11 @@ class AksesCampaignController extends Controller
             'ownerBrand.*' => ['integer', Rule::exists('OwnerBrand', 'idPengguna')],
         ]);
 
-        // sync(): yang dicentang ditambahkan, yang tidak dicentang dihapus, yang sudah ada dibiarkan.
-        $campaign->ownerBrand()->sync($data['ownerBrand'] ?? []);
+        // Sama seperti sync(), tetapi idAdmin ikut tersimpan di tabel AksesCampaign
+        $campaign->ownerBrand()->syncWithPivotValues(
+            $data['ownerBrand'] ?? [],
+            ['idAdmin' => $request->user()->idPengguna]
+        );
 
         // Tabel 15 alternative scenario: tidak memilih Owner Brand = tidak ada akses
         $pesan = empty($data['ownerBrand'])
