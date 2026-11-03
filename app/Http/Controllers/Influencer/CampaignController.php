@@ -65,6 +65,12 @@ class CampaignController extends Controller
             return back()->with('gagal', $alasan);
         }
 
+        // Campaign wajib hadir: influencer harus menyatakan bersedia lewat konfirmasi.
+        // Dicek juga di server supaya tidak bisa dilewati dengan mengubah form.
+        if ($campaign->wajibHadir && ! $request->boolean('bersediaHadir')) {
+            return back()->with('gagal', 'Campaign ini mewajibkan kehadiran langsung. Pendaftaran dibatalkan.');
+        }
+
         // Rekening wajib diisi saat mendaftar kalau influencer belum punya (catatan wireframe Gambar 83)
         $rekeningBaru = null;
 

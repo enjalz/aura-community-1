@@ -16,7 +16,7 @@ class Campaign extends ModelAura
 
     protected $fillable = [
         'idPengguna', 'namaCampaign', 'deskripsi', 'targetAudiens', 'kategoriInfluencer',
-        'lokasiCampaign', 'targetUsia', 'minimalPengikut', 'feePerInfluencer',
+        'lokasiCampaign', 'wajibHadir', 'targetUsia', 'minimalPengikut', 'feePerInfluencer',
         'tanggalMulai', 'tanggalSelesai', 'tanggalUnggahMulai', 'tanggalUnggahSelesai',
         'statusCampaign', 'kuotaInfluencer',
     ];
@@ -30,6 +30,7 @@ class Campaign extends ModelAura
             'tanggalUnggahMulai' => 'date',
             'tanggalUnggahSelesai' => 'date',
             'minimalPengikut' => 'integer',
+            'wajibHadir' => 'boolean',
         ];
     }
 

@@ -59,6 +59,19 @@
                         </div>
                         <div class="col-md-6">
                             <div class="field">
+                                <span class="field-label">Kehadiran</span>
+                                {{-- hidden: kalau checkbox tidak dicentang, tetap terkirim nilai 0 --}}
+                                <input type="hidden" name="wajibHadir" value="0">
+                                <div class="form-check">
+                                    <input class="form-check-input" type="checkbox" id="wajibHadir" name="wajibHadir" value="1"
+                                        @checked(old('wajibHadir', $campaign?->wajibHadir))>
+                                    <label class="form-check-label" for="wajibHadir">Influencer wajib datang langsung ke lokasi</label>
+                                </div>
+                                <p class="teks-bantuan">Centang untuk event atau pembukaan gerai.</p>
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <div class="field">
                                 <label for="kategoriInfluencer" class="field-label">Kategori Influencer</label>
                                 <select id="kategoriInfluencer" name="kategoriInfluencer" @class(['input-aura', 'is-invalid' => $errors->has('kategoriInfluencer')])>
                                     <option value="" disabled @selected(! old('kategoriInfluencer', $campaign?->kategoriInfluencer))>Pilih kategori</option>

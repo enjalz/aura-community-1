@@ -28,6 +28,7 @@ class CampaignRequest extends FormRequest
             'feePerInfluencer' => ['required', 'numeric', 'min:0', 'max:9999999999'],
             'tanggalMulai' => ['required', 'date'],
             'tanggalSelesai' => ['required', 'date', 'after_or_equal:tanggalMulai'],
+            'wajibHadir' => ['required', 'boolean'],
 
             // Periode unggah harus di dalam periode campaign. Tanggal sama = unggah serempak satu hari.
             'tanggalUnggahMulai' => ['required', 'date', 'after_or_equal:tanggalMulai', 'before_or_equal:tanggalSelesai'],
@@ -98,6 +99,7 @@ class CampaignRequest extends FormRequest
             'tanggalSelesai' => 'Tanggal Selesai',
             'tanggalUnggahMulai' => 'Tanggal Unggah Mulai',
             'tanggalUnggahSelesai' => 'Tanggal Unggah Selesai',
+            'wajibHadir' => 'Wajib Hadir',
             'statusCampaign' => 'Status',
             'kuotaInfluencer' => 'Kuota Influencer',
             'ketentuan.*.platform' => 'Platform',

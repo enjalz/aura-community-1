@@ -89,6 +89,9 @@
                         <div><dt>Target Audiens</dt><dd>{{ $terpilih->targetAudiens }}</dd></div>
                         <div><dt>Kategori Influencer</dt><dd>{{ $terpilih->kategoriInfluencer }}</dd></div>
                         <div><dt>Lokasi Campaign</dt><dd>{{ $terpilih->lokasiCampaign }}</dd></div>
+                        @if ($terpilih->wajibHadir)
+                            <div><dt>Kehadiran</dt><dd><strong>Wajib datang langsung ke lokasi</strong></dd></div>
+                        @endif
                         <div><dt>Periode</dt><dd>{{ $terpilih->tanggalMulai->format('d/m/Y') }} - {{ $terpilih->tanggalSelesai->format('d/m/Y') }}</dd></div>
                         <div><dt>Periode Unggah Konten</dt><dd>{{ $terpilih->periodeUnggah() ?? '-' }}</dd></div>
                         <div><dt>Fee per Influencer</dt><dd><x-rupiah :nilai="$terpilih->feePerInfluencer" /></dd></div>
@@ -161,9 +164,17 @@
 
                     @else
                         {{-- Memenuhi semua kriteria: tampilkan form pendaftaran --}}
+                        @php
+                            $pesanKonfirmasi = $terpilih->wajibHadir
+                                ? "Campaign ini mewajibkan Anda datang langsung ke {$terpilih->lokasiCampaign}. Apakah Anda bersedia hadir?"
+                                : "Daftar ke {$terpilih->namaCampaign}?";
+                        @endphp
                         <form method="POST" action="{{ route('influencer.campaign.daftar', $terpilih) }}" class="tumpukan-kecil"
-                              data-konfirmasi="Daftar ke {{ $terpilih->namaCampaign }}?" novalidate>
+                            data-konfirmasi="{{ $pesanKonfirmasi }}" novalidate>
                             @csrf
+                            @if ($terpilih->wajibHadir)
+                                <input type="hidden" name="bersediaHadir" value="1">
+                            @endif
 
                             @if ($influencer->rekening)
                                 {{-- Rekening sudah ada: dipakai untuk pembayaran fee campaign ini --}}

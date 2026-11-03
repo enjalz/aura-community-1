@@ -24,8 +24,8 @@ class HasilPengerjaan extends ModelAura
     protected function casts(): array
     {
         return [
-            'tanggalPengirimanDraft' => 'date',
-            'tanggalPengirimanInsight' => 'date',
+            'tanggalPengirimanDraft'   => 'datetime',
+            'tanggalPengirimanInsight' => 'datetime',
         ];
     }
 
