@@ -1,7 +1,7 @@
-{{-- Detail Campaign (Tabel 14 "melihat").
-     Atas: Informasi Campaign dan Ketentuan Platform (susunan wireframe Gambar 83).
-     Bawah: Owner Brand yang punya akses (Tabel 15) dan daftar pendaftar beserta data seleksi
-     (subbab 2.1.4: kecocokan, ER, view rate, label perlu diperiksa, estimasi jangkauan). --}}
+{{-- Detail Campaign
+    Atas: Informasi Campaign dan Ketentuan Platform (susunan wireframe Gambar 83).
+    Bawah: Owner Brand yang punya akses (Tabel 15) dan daftar pendaftar beserta data seleksi
+    (subbab 2.1.4: kecocokan, ER, view rate, label perlu diperiksa, estimasi jangkauan). --}}
 @extends('layouts.dashboard')
 
 @section('title', $campaign->namaCampaign . ' - Aura Community')

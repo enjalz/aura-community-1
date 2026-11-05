@@ -51,7 +51,7 @@ return [
     'berkas' => [
         'draft' => [
             'ekstensi'      => 'mp4,mov,webm,jpg,jpeg,png',
-            'maksimal'      => 512000,  // 500 MB untuk video
+            'maksimal'      => 102400,  // 100 MB untuk video
             'maksimalFoto'  => 10240,   // 10 MB untuk foto
         ],
         'insight' => ['ekstensi' => 'jpg,jpeg,png,webp', 'maksimal' => 5120],          // 5 MB

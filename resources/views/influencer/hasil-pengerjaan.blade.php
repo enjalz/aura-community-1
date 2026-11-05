@@ -173,7 +173,7 @@
                                     @error('draftKonten')
                                         <p class="pesan-error">{{ $message }}</p>
                                     @enderror
-                                    <p class="teks-bantuan">Video (mp4, mov, webm) maksimal 500 MB, atau foto (jpg, png) maksimal 10 MB.</p>
+                                    <p class="teks-bantuan">Video (mp4, mov, webm) maksimal 100 MB, atau foto (jpg, png) maksimal 10 MB.</p>
                                     @if ($terpilih->pendaftaran->campaign->kontenSama)
                                         <div class="catatan">
                                             Campaign ini memakai konten yang sama untuk semua platform. Draft yang Anda kirim berlaku untuk

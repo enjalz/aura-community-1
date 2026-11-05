@@ -536,3 +536,62 @@ section[id] {
     padding: 0 18px;
     font-size: var(--text-body-sm);
 }
+
+/* ---------------------------------------------------------------------
+   GALERI KONTEN  (landing/galeri.blade.php)
+   Tiga GIF tegak 9:16 seperti TikTok/Reels, di tengah halaman.
+   Lebar dibatasi supaya kotak tidak terlalu tinggi di layar besar.
+   --------------------------------------------------------------------- */
+.galeri-video {
+    display: grid;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: var(--spacing-24);
+    width: 100%;
+    max-width: 840px;
+    margin-right: auto;
+    margin-left: auto;
+}
+
+.galeri-video-item {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+    margin: 0;
+}
+
+.galeri-video-isi {
+    display: block;
+    width: 100%;
+    aspect-ratio: 9 / 16;
+    border-radius: var(--radius-image);
+    background-color: var(--color-charcoal);
+    object-fit: cover;
+}
+
+/* Kotak pengganti: ikon di tengah, latar ivory (tidak ikut charcoal milik gambar) */
+.galeri-video-isi.gambar-kosong {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background-color: var(--color-ivory);
+}
+
+.galeri-video-item figcaption {
+    font-size: var(--text-body-sm);
+    text-align: center;
+    color: var(--color-muted);
+}
+
+/* HP: tiga kotak berjajar dan digeser ke samping, berhenti tepat di tengah setiap kotak */
+@media (max-width: 767.98px) {
+    .galeri-video {
+        grid-template-columns: repeat(3, 72%);
+        overflow-x: auto;
+        padding-bottom: var(--spacing-8);
+        scroll-snap-type: x mandatory;
+    }
+
+    .galeri-video-item {
+        scroll-snap-align: center;
+    }
+}

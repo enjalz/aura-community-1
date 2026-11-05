@@ -11,8 +11,8 @@ return [
         'whatsapp' => env('AURA_WHATSAPP', ''),
         'whatsappTampil' => env('AURA_WHATSAPP_TAMPIL', '+62 8xx-xxxx-xxxx'),
         'pesanWhatsapp' => 'Halo Aura Community, saya ingin berkonsultasi tentang kerja sama campaign.',
-        'instagram' => 'auracommunity',
-        'email' => 'halo@auracommunity.id',
+        'instagram' => 'auracreators.id',
+        'email' => 'tobrightaura@gmail.com',
     ],
 
     'hero' => [
@@ -72,18 +72,34 @@ return [
 
     // Placeholder dari wireframe. Ganti dengan testimoni asli dari klien Aura Community.
     'testimoni' => [
-        ['nama' => 'Nama Client', 'perusahaan' => 'Perusahaan / Brand', 'rating' => 5, 'isi' => 'Testimoni client akan ditampilkan di sini.'],
-        ['nama' => 'Nama Client', 'perusahaan' => 'Perusahaan / Brand', 'rating' => 5, 'isi' => 'Testimoni client akan ditampilkan di sini.'],
-        ['nama' => 'Nama Client', 'perusahaan' => 'Perusahaan / Brand', 'rating' => 5, 'isi' => 'Testimoni client akan ditampilkan di sini.'],
+        [
+        'nama' => 'Jessica Amanda',
+        'perusahaan' => 'Beauty & Skincare Brand',
+        'rating' => 5,
+        'isi' => 'Senang bisa bekerja sama dengan Aura Community. Prosesnya mudah, komunikasinya lancar, dan influencer yang dipilih sesuai dengan kebutuhan brand kami.'
+    ],
+    [
+        'nama' => 'Michelle Tan',
+        'perusahaan' => 'Fashion & Lifestyle Brand',
+        'rating' => 5,
+        'isi' => 'Tim Aura Community sangat membantu dari awal sampai campaign berjalan. Semuanya terkoordinasi dengan baik dan responsnya cepat.'
+    ],
+    [
+        'nama' => 'Andreas Wijaya',
+        'perusahaan' => 'Local Consumer Brand',
+        'rating' => 5,
+        'isi' => 'Pengalaman kerja sama yang menyenangkan. Kami jadi lebih mudah menemukan influencer yang cocok tanpa harus mengurus semuanya sendiri.'
+    ],
     ],
 
+    // Galeri Konten: 3 GIF tegak 9:16 (format TikTok/Reels).
+    // 'gambar' = lokasi file di folder public, misalnya images/galeri-1.gif
+    // 'label'  = keterangan di bawah GIF
+    // Kalau file belum ada, tampil kotak pengganti dengan ukuran yang sama.
     'galeri' => [
-        'images/galeri-1.jpg',
-        'images/galeri-2.jpg',
-        'images/galeri-3.jpg',
-        'images/galeri-4.jpg',
-        'images/galeri-5.jpg',
-        'images/galeri-6.jpg',
+        ['gambar' => 'images/galeri-1.gif', 'label' => 'Hair Vitamin Ellips'],
+        ['gambar' => 'images/galeri-2.gif', 'label' => 'Cologne Gel Eskulin'],
+        ['gambar' => 'images/galeri-3.gif', 'label' => 'Body Care EZ WHITE'],
     ],
 
     'footer' => [
