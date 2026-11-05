@@ -108,6 +108,10 @@ return [
         'wanita' => 'Wanita',
     ],
 
+    // Jumlah hari menunggu setelah link konten dikirim sebelum insight boleh dikirim.
+    // Insight media sosial baru lengkap setelah konten tayang beberapa hari.
+    'hariTungguInsight' => 7,
+
     // Seleksi influencer (subbab 2.1.4 Manajemen Influencer)
     'seleksi' => [
         // Label "perlu diperiksa" jika view rate < 50% rata-rata rentang pengikutnya

@@ -12,10 +12,11 @@
 
 @section('isi')
     <div class="kepala-halaman">
-        <a href="{{ route('admin.owner-brand') }}" class="tautan-kembali">
-            <i class="bi bi-arrow-left" aria-hidden="true"></i>
-            Kembali ke Data Owner Brand
-        </a>
+            {{-- Tombol kembali ke daftar laporan, sama seperti halaman detail lainnya --}}
+            <a href="{{ route('owner.laporan') }}" class="tautan-kembali mb-3">
+                <i class="bi bi-arrow-left" aria-hidden="true"></i>
+                Kembali ke Laporan
+            </a>
 
         <div class="aksi-kepala">
             <a href="{{ route('admin.owner-brand.ubah', $ownerBrand) }}" class="btn-aura btn-aura-outline">

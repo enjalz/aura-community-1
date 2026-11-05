@@ -55,14 +55,11 @@
                             </td>
                             <td class="kolom-aksi">
                                 <div class="aksi-baris">
-                                    <a class="tautan" href="{{ route('admin.owner-brand.detail', $ownerBrand) }}">Detail</a>
-                                    <a class="tautan" href="{{ route('admin.owner-brand.ubah', $ownerBrand) }}">Ubah</a>
-                                    <form method="POST" action="{{ route('admin.owner-brand.hapus', $ownerBrand) }}" class="form-sebaris"
-                                          data-konfirmasi="Hapus akun {{ $ownerBrand->namaBrand }}? Akses ke campaign juga akan dihapus.">
-                                        @csrf
-                                        @method('DELETE')
-                                        <button type="submit" class="tautan-tombol">Hapus</button>
-                                    </form>
+                                    <x-aksi ikon="eye" label="Detail" :href="route('admin.owner-brand.detail', $ownerBrand)" />
+                                    <x-aksi ikon="pencil" label="Ubah" :href="route('admin.owner-brand.ubah', $ownerBrand)" />
+                                    <x-aksi ikon="trash" label="Hapus" bahaya
+                                            :action="route('admin.owner-brand.hapus', $ownerBrand)" method="DELETE"
+                                            :konfirmasi="'Hapus akun ' . $ownerBrand->namaBrand . '? Akses ke campaign juga akan dihapus.'" />
                                 </div>
                             </td>
                         </tr>

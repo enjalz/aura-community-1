@@ -10,11 +10,10 @@
         $sudahFinal = $statusLaporan === 'final';
     @endphp
 
-    {{-- Navigasi kembali: ← Laporan Hasil Campaign / Nama Campaign --}}
-    <nav class="mb-3" aria-label="Navigasi laporan">
-        <a class="tautan" href="{{ route('admin.laporan') }}"><i class="bi bi-arrow-left" aria-hidden="true"></i> Laporan Hasil Campaign</a>
-        <span class="teks-redup"> / {{ $campaign->namaCampaign }}</span>
-    </nav>
+    <a href="{{ route('admin.laporan') }}" class="tautan-kembali mb-3">
+        <i class="bi bi-arrow-left" aria-hidden="true"></i>
+        Kembali ke Laporan
+    </a>
 
     <section class="panel-laporan">
         <div class="kepala-langkah">

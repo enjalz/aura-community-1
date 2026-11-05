@@ -100,21 +100,15 @@
                             </td>
                             <td class="kolom-aksi">
                                 <div class="aksi-baris">
-                                    <a class="tautan" href="{{ route('admin.influencer.detail', $influencer) }}">Detail</a>
-                                    <a class="tautan" href="{{ route('admin.influencer.ubah', $influencer) }}">Ubah</a>
-
-                                    {{-- Hapus memakai form DELETE (bukan tautan), dengan konfirmasi --}}
-                                    <form method="POST" action="{{ route('admin.influencer.hapus', $influencer) }}" class="form-sebaris"
-                                          data-konfirmasi="Hapus data influencer {{ $influencer->pengguna->nama }}?">
-                                        @csrf
-                                        @method('DELETE')
-                                        <button type="submit" class="tautan-tombol">Hapus</button>
-                                    </form>
-
-                                    {{-- Wireframe: aksi Blacklist hanya ada untuk influencer yang belum di-blacklist --}}
-                                    <a class="tautan" href="{{ route('admin.influencer.detail', $influencer) }}#blacklist">
-                                        {{ $influencer->statusBlacklist ? 'Cabut Blacklist' : 'Blacklist' }}
-                                    </a>
+                                    <x-aksi ikon="eye" label="Detail" :href="route('admin.influencer.detail', $influencer)" />
+                                    <x-aksi ikon="pencil" label="Ubah" :href="route('admin.influencer.ubah', $influencer)" />
+                                    <x-aksi ikon="trash" label="Hapus" bahaya
+                                            :action="route('admin.influencer.hapus', $influencer)" method="DELETE"
+                                            :konfirmasi="'Hapus data influencer ' . $influencer->pengguna->nama . '?'" />
+                                    <x-aksi :ikon="$influencer->statusBlacklist ? 'arrow-counterclockwise' : 'slash-circle'"
+                                            :label="$influencer->statusBlacklist ? 'Cabut Blacklist' : 'Blacklist'"
+                                            :bahaya="! $influencer->statusBlacklist"
+                                            :href="route('admin.influencer.detail', $influencer) . '#blacklist'" />
                                 </div>
                             </td>
                         </tr>

@@ -72,7 +72,7 @@
                                 <td>{{ $campaign->tanggalMulai->format('d/m/Y') }}</td>
                                 <td>{{ $campaign->tanggalSelesai->format('d/m/Y') }}</td>
                                 <td><x-status jenis="statusCampaign" :nilai="$campaign->statusCampaign" /></td>
-                                <td class="kolom-aksi"><a class="tautan" href="{{ route('admin.campaign.detail', $campaign) }}">Detail</a></td>
+                                <td class="kolom-aksi"><x-aksi ikon="eye" label="Detail" :href="route('admin.campaign.detail', $campaign)" /></td>
                             </tr>
                         @endforeach
                     </tbody>

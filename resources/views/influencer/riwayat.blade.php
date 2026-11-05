@@ -37,7 +37,7 @@
                             <td><x-rupiah :nilai="$pendaftaran->pembayaran?->jumlahPembayaran ?? $pendaftaran->campaign->feePerInfluencer" /></td>
                             <td><x-status jenis="statusPembayaran" :nilai="$pendaftaran->pembayaran?->statusPembayaran ?? 'belum'" /></td>
                             <td class="kolom-aksi">
-                                <a class="tautan" href="{{ route('influencer.campaign', ['pilih' => $pendaftaran->idCampaign]) }}">Detail</a>
+                                <x-aksi ikon="eye" label="Detail" :href="route('influencer.campaign', ['pilih' => $pendaftaran->idCampaign])" />
                             </td>
                         </tr>
                     @endforeach

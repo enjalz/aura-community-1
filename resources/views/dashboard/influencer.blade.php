@@ -65,7 +65,7 @@
                                 </td>
                                 <td class="kolom-aksi">
                                     {{-- Yang sudah diterima diarahkan ke Hasil Pengerjaan, yang lain ke detail campaign --}}
-                                    <a class="tautan" href="{{ $pendaftaran->statusPendaftaran === 'diterima' ? route('influencer.hasil') : route('influencer.campaign', ['pilih' => $pendaftaran->idCampaign]) }}">Detail</a>
+                                    <x-aksi ikon="eye" label="Detail" :href="$pendaftaran->statusPendaftaran === 'diterima' ? route('influencer.hasil') : route('influencer.campaign', ['pilih' => $pendaftaran->idCampaign])" />
                                 </td>
                             </tr>
                         @endforeach
@@ -97,7 +97,7 @@
                                 {{-- Str::limit memotong teks panjang menjadi 80 karakter dengan "..." di akhir --}}
                                 <td class="sel-teks">{{ \Illuminate\Support\Str::limit($feedback->isiFeedback, 80) }}</td>
                                 <td>{{ $feedback->tanggalFeedback->format('d/m/Y') }}</td>
-                                <td class="kolom-aksi"><a class="tautan" href="{{ route('influencer.hasil') }}">Lihat</a></td>
+                                <td class="kolom-aksi"><x-aksi ikon="chat-left-text" label="Lihat Feedback" :href="route('influencer.hasil')" /></td>
                             </tr>
                         @endforeach
                     </tbody>
@@ -131,7 +131,7 @@
                                 <td><x-rupiah :nilai="$campaign->feePerInfluencer" /></td>
                                 <td>{{ $campaign->kuotaInfluencer }}</td>
                                 <td>{{ $campaign->tanggalSelesai->format('d/m/Y') }}</td>
-                                <td class="kolom-aksi"><a class="tautan" href="{{ route('influencer.campaign', ['pilih' => $campaign->idCampaign]) }}">Detail</a></td>
+                                <td class="kolom-aksi"><x-aksi ikon="eye" label="Detail" :href="route('influencer.campaign', ['pilih' => $campaign->idCampaign])" /></td>
                             </tr>
                         @endforeach
                     </tbody>

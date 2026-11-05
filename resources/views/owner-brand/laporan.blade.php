@@ -38,7 +38,7 @@
                             <td>{{ $campaign->jumlahInfluencer }}</td>
                             <td>{{ number_format($ringkasan[$campaign->idCampaign]['views'], 0, ',', '.') }}</td>
                             <td class="kolom-aksi">
-                                <a class="tautan" href="{{ route('owner.laporan.detail', $campaign) }}">Pilih</a>
+                                <x-aksi ikon="file-earmark-text" label="Buka Laporan" :href="route('owner.laporan.detail', $campaign)" />
                             </td>
                         </tr>
                     @endforeach

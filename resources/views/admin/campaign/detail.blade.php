@@ -40,7 +40,7 @@
             <h2 class="judul-bagian">Informasi Campaign</h2>
             <dl class="daftar-data">
                 <div class="daftar-data-baris"><dt>Nama Campaign</dt><dd>{{ $campaign->namaCampaign }}</dd></div>
-                <div class="daftar-data-baris"><dt>Deskripsi</dt><dd class="teks-panjang">{{ $campaign->deskripsi }}</dd></div>
+                <div class="daftar-data-baris"><dt>Deskripsi</dt><dd><x-teks-ringkas :teks="$campaign->deskripsi" /></dd></div>
                 <div class="daftar-data-baris"><dt>Target Audiens</dt><dd>{{ $campaign->targetAudiens }}</dd></div>
                 <div class="daftar-data-baris"><dt>Kategori Influencer</dt><dd>{{ $campaign->kategoriInfluencer }}</dd></div>
                 <div class="daftar-data-baris"><dt>Kehadiran</dt><dd>{{ $campaign->wajibHadir ? 'Wajib datang langsung ke lokasi' : 'Tidak wajib hadir' }}</dd></div>
@@ -241,17 +241,13 @@
                                             @if ($kuotaPenuh)
                                                 <span class="teks-redup">Kuota penuh</span>
                                             @else
-                                                <form method="POST" action="{{ route('admin.campaign.pendaftar.terima', [$campaign, $pendaftaran]) }}" class="form-sebaris"
-                                                      data-konfirmasi="Terima {{ $baris->nama }} di campaign ini?">
-                                                    @csrf
-                                                    <button type="submit" class="btn-aura btn-aura-primary btn-aura-sm">Terima</button>
-                                                </form>
+                                                <x-aksi ikon="check-lg" label="Terima" utama
+                                                        :action="route('admin.campaign.pendaftar.terima', [$campaign, $pendaftaran])"
+                                                        :konfirmasi="'Terima ' . $baris->nama . ' di campaign ini?'" />
                                             @endif
-                                            <form method="POST" action="{{ route('admin.campaign.pendaftar.tolak', [$campaign, $pendaftaran]) }}" class="form-sebaris"
-                                                  data-konfirmasi="Tolak pendaftaran {{ $baris->nama }}?">
-                                                @csrf
-                                                <button type="submit" class="btn-aura btn-aura-outline btn-aura-sm">Tolak</button>
-                                            </form>
+                                            <x-aksi ikon="x-lg" label="Tolak" bahaya
+                                                    :action="route('admin.campaign.pendaftar.tolak', [$campaign, $pendaftaran])"
+                                                    :konfirmasi="'Tolak pendaftaran ' . $baris->nama . '?'" />
                                         </div>
                                     @else
                                         <span class="teks-redup">-</span>

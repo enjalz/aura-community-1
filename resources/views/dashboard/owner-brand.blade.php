@@ -40,7 +40,7 @@
                                 <td>{{ $campaign->tanggalMulai->format('d/m/Y') }}</td>
                                 <td>{{ $campaign->tanggalSelesai->format('d/m/Y') }}</td>
                                 <td><x-status jenis="statusCampaign" :nilai="$campaign->statusCampaign" /></td>
-                                <td class="kolom-aksi"><a class="tautan" href="{{ route('owner.campaign', ['pilih' => $campaign->idCampaign]) }}">Detail</a></td>
+                                <td class="kolom-aksi"><x-aksi ikon="eye" label="Detail" :href="route('owner.campaign', ['pilih' => $campaign->idCampaign])" /></td>
                             </tr>
                         @endforeach
                     </tbody>
@@ -76,7 +76,7 @@
                             <td>{{ number_format($baris['ringkasan']['komentar'], 0, ',', '.') }}</td>
                             {{-- Tautan harus di dalam <td>, kalau tidak browser memindahkannya ke luar tabel --}}
                             <td class="kolom-aksi">
-                                <a class="tautan" href="{{ route('owner.laporan.detail', $baris['campaign']) }}">Lihat Laporan</a>
+                                <x-aksi ikon="file-earmark-text" label="Lihat Laporan" :href="route('owner.laporan.detail', $baris['campaign'])" />
                             </td>
                         </tr>
                     @endforeach

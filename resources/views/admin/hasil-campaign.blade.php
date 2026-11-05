@@ -54,7 +54,7 @@
                                     <td>{{ $hasil->tanggalPengirimanDraft->format('d/m/Y H:i') }} WIB</td>
                                     <td><x-status jenis="statusDraft" :nilai="$hasil->statusDraft" /></td>
                                     <td class="kolom-aksi">
-                                        <a class="tautan" href="{{ request()->fullUrlWithQuery(['pilih' => $hasil->idHasil]) }}">Periksa</a>
+                                        <x-aksi ikon="eye" label="Periksa" :href="request()->fullUrlWithQuery(['pilih' => $hasil->idHasil])" />
                                     </td>
                                 </tr>
                             @endforeach
@@ -82,8 +82,13 @@
                         @endif
                     </dl>
 
-                    {{-- Tabel 19 langkah 4: sistem menampilkan detail konten --}}
-                    <x-pratinjau-berkas :hasil="$terpilih" jenis="draft" />
+                    {{-- Tabel 19 langkah 4: sistem menampilkan detail konten.
+                         Berkas draft dihapus otomatis setelah influencer mengirim link konten. --}}
+                    @if ($terpilih->draftKonten)
+                        <x-pratinjau-berkas :hasil="$terpilih" jenis="draft" />
+                    @else
+                        <div class="catatan">Berkas draft sudah dihapus otomatis setelah influencer mengirim link konten.</div>
+                    @endif
 
                     @if ($terpilih->feedback->isNotEmpty())
                         <div class="field">

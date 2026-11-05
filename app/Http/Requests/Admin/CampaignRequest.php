@@ -43,7 +43,7 @@ class CampaignRequest extends FormRequest
             'ketentuan.*.platform' => ['required', Rule::in(config('aura.platform'))],
             'ketentuan.*.jenisKonten' => ['required', Rule::in(array_keys(config('aura.jenisKonten')))],
             // Satu konten per platform: setiap platform punya satu draft, link, dan insight
-            'ketentuan.*.jumlahPostingan' => ['required', 'integer', 'in:1'],   
+            'ketentuan.*.jumlahPostingan' => ['required', 'integer', 'in:1'],
         ];
     }
 
@@ -94,6 +94,18 @@ class CampaignRequest extends FormRequest
                         'Pilihan konten tidak dapat diubah karena influencer sudah mengirim draft.');
                 }
             },
+
+            // Tanggal Selesai harus memberi waktu untuk masa tunggu insight setelah periode unggah berakhir
+            function (Validator $validator) {
+                $unggahSelesai = $this->date('tanggalUnggahSelesai');
+                $selesai = $this->date('tanggalSelesai');
+                $hari = config('aura.hariTungguInsight');
+
+                if ($unggahSelesai && $selesai && $selesai->lt($unggahSelesai->copy()->addDays($hari))) {
+                    $validator->errors()->add('tanggalSelesai',
+                        "Tanggal Selesai minimal {$hari} hari setelah Tanggal Unggah Selesai, karena insight baru dapat dikirim {$hari} hari setelah konten diunggah.");
+                }
+            },
         ];
     }
 
@@ -133,12 +145,12 @@ class CampaignRequest extends FormRequest
             'tanggalUnggahMulai' => 'Tanggal Unggah Mulai',
             'tanggalUnggahSelesai' => 'Tanggal Unggah Selesai',
             'wajibHadir' => 'Wajib Hadir',
+            'kontenSama' => 'Konten yang Sama',
             'statusCampaign' => 'Status',
             'kuotaInfluencer' => 'Kuota Influencer',
             'ketentuan.*.platform' => 'Platform',
             'ketentuan.*.jenisKonten' => 'Jenis Konten',
             'ketentuan.*.jumlahPostingan' => 'Jumlah Postingan',
-            'kontenSama' => 'Konten yang Sama',
         ];
     }
 }

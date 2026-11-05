@@ -33,7 +33,6 @@ class CampaignController extends Controller
         $terpilih = $request->integer('pilih')
             ? $ownerBrand->campaign()->find($request->integer('pilih'))
             : null;
-        $terpilih ??= $daftar->first();
         $terpilih?->load('ketentuanPlatform');
 
         return view('owner-brand.campaign', [

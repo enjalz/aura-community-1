@@ -69,11 +69,17 @@
 
 .tabel-aura th,
 .tabel-aura td {
-    padding: 12px var(--spacing-16);
+    padding: 10px 12px;
     border-bottom: 1px solid var(--color-border);
     text-align: left;
     vertical-align: middle;
-    white-space: nowrap;   /* email dan tanggal tidak terpotong ke baris baru */
+    white-space: normal;          /* teks boleh turun baris supaya tabel tidak melebar ke samping */
+    overflow-wrap: break-word;    /* email atau username yang panjang dipotong ke baris baru */
+}
+
+.tabel-aura .badge-status,
+.tabel-aura .kolom-aksi {
+    white-space: nowrap;
 }
 
 .tabel-aura thead th {
@@ -311,17 +317,26 @@ a.paginasi-item:hover {
     gap: 12px;
 }
 
+/* Tombol kembali berbentuk pil dengan garis, sama seperti btn-aura-outline */
 .tautan-kembali {
     display: inline-flex;
     align-items: center;
-    gap: 6px;
+    gap: 8px;
     align-self: flex-start;
+    padding: 8px 16px;
+    border: 1px solid var(--color-charcoal);
+    border-radius: var(--radius-button);
+    background-color: transparent;
     font-size: var(--text-body-sm);
-    color: var(--color-muted);
+    font-weight: 500;
+    color: var(--color-charcoal);
+    transition: background-color 0.2s ease, color 0.2s ease, border-color 0.2s ease;
 }
 
 .tautan-kembali:hover {
-    color: var(--color-charcoal);
+    border-color: var(--color-mocha);
+    background-color: var(--color-mocha);
+    color: var(--color-white);
 }
 
 /* Beberapa bagian disusun ke bawah dengan jarak 24px */
@@ -1002,4 +1017,148 @@ a.paginasi-item:hover {
 .tabel-aura td.sel-teks {
     min-width: 280px;
     white-space: normal;
+}
+
+/* ---------------------------------------------------------------------
+   TOMBOL AKSI IKON DI TABEL  (components/aksi.blade.php)
+   Bulat 34px. Keterangan aksi muncul saat kursor diarahkan.
+   --------------------------------------------------------------------- */
+.tombol-aksi {
+    display: inline-grid;
+    place-items: center;
+    width: 34px;
+    height: 34px;
+    padding: 0;
+    border: 1px solid var(--color-border);
+    border-radius: 50%;
+    background-color: var(--color-white);
+    font-size: 15px;
+    color: var(--color-charcoal);
+    cursor: pointer;
+    transition: background-color 0.2s ease, color 0.2s ease, border-color 0.2s ease;
+}
+
+.tombol-aksi:hover {
+    border-color: var(--color-mocha);
+    background-color: var(--color-mocha);
+    color: var(--color-white);
+}
+
+/* Aksi utama (Terima, Verifikasi): pink */
+.tombol-aksi-utama {
+    border-color: var(--color-blush);
+    background-color: var(--color-blush);
+}
+
+/* Aksi berbahaya (Hapus, Tolak, Blacklist): merah saat di-hover */
+.tombol-aksi-bahaya:hover {
+    border-color: var(--color-error);
+    background-color: var(--color-error);
+    color: var(--color-white);
+}
+
+/* Jarak antartombol ikon dalam satu sel */
+.aksi-baris {
+    align-items: center;
+    gap: 6px;
+}
+
+@media (prefers-reduced-motion: reduce) {
+    .tombol-aksi {
+        transition: none;
+    }
+}
+
+/* ---------------------------------------------------------------------
+   HASIL PENGERJAAN: status per platform di tabel dan tab platform di detail
+   --------------------------------------------------------------------- */
+
+/* Baris status kecil di bawah nama platform: "Draft: [Disetujui]  Insight: [Menunggu]" */
+.status-platform {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 6px;
+    margin-top: 4px;
+    font-size: 13px;
+}
+
+.status-platform .badge-status {
+    padding: 3px 10px;
+    font-size: 12px;
+}
+
+/* Tab platform berbentuk pil. Tab aktif berwarna mocha seperti menu sidebar. */
+.tab-platform {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+    margin-bottom: var(--spacing-16);
+}
+
+.tab-platform .nav-link {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    padding: 8px 18px;
+    border: 1px solid var(--color-border);
+    border-radius: var(--radius-button);
+    background-color: var(--color-white);
+    font-size: var(--text-body-sm);
+    font-weight: 500;
+    color: var(--color-charcoal);
+    transition: background-color 0.2s ease, color 0.2s ease, border-color 0.2s ease;
+}
+
+.tab-platform .nav-link:hover {
+    border-color: var(--color-blush);
+    background-color: var(--color-blush);
+    color: var(--color-charcoal);
+}
+
+.tab-platform .nav-link.active {
+    border-color: var(--color-mocha);
+    background-color: var(--color-mocha);
+    color: var(--color-white);
+}   
+
+/* ---------------------------------------------------------------------
+   TEKS RINGKAS  (components/teks-ringkas.blade.php)
+   Teks dipotong sesuai jumlah baris (--baris-ringkas), lalu dibuka dengan tombol.
+   --------------------------------------------------------------------- */
+.teks-ringkas-isi {
+    display: -webkit-box;
+    -webkit-box-orient: vertical;
+    -webkit-line-clamp: var(--baris-ringkas, 4);
+    line-clamp: var(--baris-ringkas, 4);
+    overflow: hidden;
+}
+
+/* Setelah tombol diklik: tampil utuh */
+.teks-ringkas.is-terbuka .teks-ringkas-isi {
+    display: block;
+    -webkit-line-clamp: unset;
+    line-clamp: unset;
+}
+
+.teks-ringkas-tombol {
+    margin-top: 6px;
+    padding: 0;
+    border: 0;
+    background: none;
+    font-family: inherit;
+    font-size: var(--text-body-sm);
+    font-weight: 600;
+    color: var(--color-mocha);
+    text-decoration: underline;
+    text-underline-offset: 3px;
+    cursor: pointer;
+}
+
+.teks-ringkas-tombol:hover {
+    color: var(--color-charcoal);
+}
+
+.teks-ringkas-tombol[hidden] {
+    display: none;
 }

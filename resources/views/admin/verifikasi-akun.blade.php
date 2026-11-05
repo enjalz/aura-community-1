@@ -7,6 +7,24 @@
 
 @section('title', 'Verifikasi Akun - Aura Community')
 @section('judul', 'Verifikasi Akun')
+@push('scripts')
+    <script>
+        // Saat ikon Tolak diklik: isi alamat form dan nama akun di pop-up, lalu kosongkan alasan sebelumnya
+        document.getElementById('modalTolakSosmed')?.addEventListener('show.bs.modal', function (event) {
+            const tombol = event.relatedTarget;
+            const form = this.querySelector('form');
+
+            form.action = tombol.dataset.action;
+            this.querySelector('[data-nama-akun]').textContent = tombol.dataset.nama;
+            form.querySelector('textarea').value = '';
+        });
+
+        // Kursor langsung berada di kolom alasan setelah pop-up terbuka
+        document.getElementById('modalTolakSosmed')?.addEventListener('shown.bs.modal', function () {
+            this.querySelector('textarea').focus();
+        });
+    </script>
+@endpush
 
 @section('isi')
     <div class="dua-kolom">
@@ -38,7 +56,7 @@
                                     <td>{{ $influencer->kategori }}</td>
                                     <td class="kolom-aksi">
                                         {{-- Menambah ?pilih=ID tanpa menghapus nomor halaman (?page=2) --}}
-                                        <a class="tautan" href="{{ request()->fullUrlWithQuery(['pilih' => $influencer->idPengguna]) }}">Periksa</a>
+                                        <x-aksi ikon="eye" label="Periksa" :href="request()->fullUrlWithQuery(['pilih' => $influencer->idPengguna])" />
                                     </td>
                                 </tr>
                             @endforeach
@@ -167,18 +185,18 @@
                                 </td>
                                 <td class="kolom-aksi">
                                     <div class="aksi-baris">
-                                        <form method="POST" action="{{ route('admin.verifikasi.sosmed.setujui', $akunSosmed) }}" class="form-sebaris"
-                                              data-konfirmasi="Verifikasi akun {{ $akunSosmed->platform }} milik {{ $akunSosmed->influencer->pengguna->nama }}?">
-                                            @csrf
-                                            <button type="submit" class="btn-aura btn-aura-primary btn-aura-sm">Verifikasi</button>
-                                        </form>
-                                        <form method="POST" action="{{ route('admin.verifikasi.sosmed.tolak', $akunSosmed) }}" class="form-sebaris"
-                                              data-konfirmasi="Tolak akun {{ $akunSosmed->platform }} milik {{ $akunSosmed->influencer->pengguna->nama }}?">
-                                            @csrf
-                                            <input type="text" name="alasan" class="input-aura" placeholder="Alasan penolakan"
-                                                   style="width: 200px; height: 36px;" aria-label="Alasan penolakan">
-                                            <button type="submit" class="btn-aura btn-aura-outline btn-aura-sm">Tolak</button>
-                                        </form>
+                                        <x-aksi ikon="check-lg" label="Verifikasi" utama
+                                                :action="route('admin.verifikasi.sosmed.setujui', $akunSosmed)"
+                                                :konfirmasi="'Verifikasi akun ' . $akunSosmed->platform . ' milik ' . $akunSosmed->influencer->pengguna->nama . '?'" />
+
+                                        {{-- Tolak butuh kolom alasan, jadi form-nya ditulis langsung --}}
+                                        {{-- Membuka pop-up alasan penolakan. Alamat form dan nama akun dikirim lewat data-* --}}
+                                        <button type="button" class="tombol-aksi tombol-aksi-bahaya" title="Tolak" aria-label="Tolak"
+                                                data-bs-toggle="modal" data-bs-target="#modalTolakSosmed"
+                                                data-action="{{ route('admin.verifikasi.sosmed.tolak', $akunSosmed) }}"
+                                                data-nama="{{ $akunSosmed->platform }} milik {{ $akunSosmed->influencer->pengguna->nama }}">
+                                            <i class="bi bi-x-lg" aria-hidden="true"></i>
+                                        </button>
                                     </div>
                                 </td>
                             </tr>
@@ -187,5 +205,30 @@
                 </table>
             </div>
         @endif
+                {{-- Pop-up alasan penolakan akun media sosial. Satu pop-up dipakai untuk semua baris. --}}
+        <div class="modal fade" id="modalTolakSosmed" tabindex="-1" aria-labelledby="judulTolakSosmed" aria-hidden="true">
+            <div class="modal-dialog modal-dialog-centered">
+                <form method="POST" action="" class="modal-content">
+                    @csrf
+                    <div class="modal-header">
+                        <h5 class="modal-title" id="judulTolakSosmed">Tolak akun <span data-nama-akun></span>?</h5>
+                        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Tutup"></button>
+                    </div>
+                    <div class="modal-body">
+                        <div class="field">
+                            <label for="alasanTolakSosmed" class="field-label">Alasan penolakan</label>
+                            <textarea id="alasanTolakSosmed" name="alasan" rows="3" class="input-aura"
+                                      placeholder="Contoh: jumlah pengikut tidak sesuai dengan profil"
+                                      maxlength="500" required></textarea>
+                            <p class="teks-bantuan">Alasan ini akan tampil di halaman Profil influencer.</p>
+                        </div>
+                    </div>
+                    <div class="modal-footer">
+                        <button type="button" class="btn-aura btn-aura-outline" data-bs-dismiss="modal">Batal</button>
+                        <button type="submit" class="btn-aura btn-aura-primary">Ya, Tolak</button>
+                    </div>
+                </form>
+            </div>
+        </div>
     </section>
 @endsection

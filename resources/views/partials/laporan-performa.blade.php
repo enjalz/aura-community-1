@@ -108,7 +108,7 @@
                         <td>{{ $hasil->akunSosmed->platform }} - &#64;{{ $hasil->akunSosmed->username }}</td>
                         <td>
                             @if (\Illuminate\Support\Str::startsWith($hasil->linkKonten, ['https://', 'http://']))
-                                <a class="tautan" href="{{ $hasil->linkKonten }}" target="_blank" rel="noopener noreferrer">Buka Konten</a>
+                                <x-aksi ikon="box-arrow-up-right" label="Buka Konten" :href="$hasil->linkKonten" baru />
                             @else
                                 -
                             @endif

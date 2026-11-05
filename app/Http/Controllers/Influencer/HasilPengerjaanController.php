@@ -16,7 +16,8 @@ use Illuminate\Validation\Rule;
 use Illuminate\View\View;
 
 // Use case Mengirim Hasil Pengerjaan (Tabel 18) dan Mengirim Insight (Tabel 22).
-// Wireframe Gambar 84.
+// Wireframe Gambar 84. Satu baris tabel = satu campaign, detail per platform ditampilkan dalam tab.
+// Alur per platform: kirim draft -> draft disetujui -> kirim link (draft dihapus) -> tunggu 7 hari -> kirim insight.
 class HasilPengerjaanController extends Controller
 {
     public function index(Request $request): View
@@ -24,12 +25,23 @@ class HasilPengerjaanController extends Controller
         $influencer = $request->user()->influencer;
         $daftar = $this->daftarPengerjaan($influencer);
 
-        // Baris yang dipilih, contoh ?pilih=3-instagram. Kalau tidak ada, baris pertama.
-        $terpilih = $daftar->firstWhere('kunci', $request->query('pilih')) ?? $daftar->first();
+        $terpilih = $daftar->first(fn ($baris) => $baris->pendaftaran->idPendaftaran === $request->integer('pilih'));
+
+        // Tab yang terbuka: dari ?platform=, atau platform pertama yang belum selesai, atau platform pertama
+        $platformAktif = null;
+
+        if ($terpilih) {
+            $diminta = Str::lower((string) $request->query('platform'));
+
+            $platformAktif = ($terpilih->daftarPlatform->firstWhere('kunci', $diminta)
+                ?? $terpilih->daftarPlatform->first(fn ($item) => $item->hasil?->statusInsight !== 'disetujui')
+                ?? $terpilih->daftarPlatform->first())?->kunci;
+        }
 
         return view('influencer.hasil-pengerjaan', [
             'daftar' => $daftar,
             'terpilih' => $terpilih,
+            'platformAktif' => $platformAktif,
         ]);
     }
 
@@ -57,7 +69,7 @@ class HasilPengerjaanController extends Controller
                 'platform' => ['required', Rule::in($pendaftaran->campaign->ketentuanPlatform->pluck('platform')->all())],
                 'draftKonten' => [
                     'required', 'file', 'mimes:' . $aturanBerkas['ekstensi'],
-                    'max:' . $aturanBerkas['maksimal'],   // batas umum = batas video (500 MB)
+                    'max:' . $aturanBerkas['maksimal'],   // batas umum = batas video
 
                     // Foto punya batas lebih kecil dari video
                     function (string $atribut, $berkas, \Closure $gagal) use ($aturanBerkas) {
@@ -77,7 +89,7 @@ class HasilPengerjaanController extends Controller
             ]
         );
 
-                // Konten sama: satu draft dipakai untuk semua platform di ketentuan campaign.
+        // Konten sama: satu draft dipakai untuk semua platform di ketentuan campaign.
         // Konten berbeda: draft hanya untuk platform yang dipilih.
         $campaign = $pendaftaran->campaign;
         $daftarPlatform = $campaign->kontenSama
@@ -131,20 +143,78 @@ class HasilPengerjaanController extends Controller
             Storage::disk('local')->delete($lokasiLama);
         }
 
-        return redirect()->route('influencer.hasil', ['pilih' => $this->kunci($pendaftaran, $data['platform'])])
+        return redirect()->route('influencer.hasil', $this->tujuan($pendaftaran, $data['platform']))
             ->with('sukses', 'Draft berhasil dikirim dan menunggu pemeriksaan Admin.');
     }
 
-    // Tabel 22: mengirim link konten yang sudah tayang, tangkapan layar insight, dan angka metrik
+    // Tabel 22 bagian 1: mengirim link konten yang sudah tayang.
+    // Setelah link dikirim, berkas draft dihapus untuk menghemat penyimpanan.
+    public function kirimLink(Request $request, HasilPengerjaan $hasil): RedirectResponse
+    {
+        $influencer = $request->user()->influencer;
+
+        abort_unless($hasil->pendaftaran->idPengguna === $influencer->idPengguna, 404);
+
+        if ($hasil->statusDraft !== 'disetujui') {
+            return back()->with('gagal', 'Link konten dapat dikirim setelah draft disetujui Admin.');
+        }
+
+        if ($hasil->linkKonten) {
+            return back()->with('gagal', 'Link konten untuk akun ini sudah dikirim.');
+        }
+
+        if ($pesan = $this->pesanSudahBerakhir($hasil->pendaftaran->campaign, 'link konten')) {
+            return back()->with('gagal', $pesan);
+        }
+
+        $data = $request->validate(
+            ['linkKonten' => ['required', 'url:http,https', 'max:255']],
+            [
+                'linkKonten.required' => 'Link Konten wajib diisi.',
+                'linkKonten.url' => 'Link Konten harus berupa tautan lengkap, contoh https://instagram.com/p/...',
+            ]
+        );
+
+        $lokasiDraft = $hasil->draftKonten;
+
+        $hasil->update([
+            'linkKonten' => $data['linkKonten'],
+            'tanggalPengirimanLink' => now(),
+        ]);
+
+        // Hapus berkas draft kalau tidak ada lagi platform yang masih membutuhkannya.
+        // Pada campaign konten sama, satu berkas dipakai beberapa platform, jadi baru dihapus
+        // setelah semua platform yang memakai berkas itu mengirim link.
+        if ($lokasiDraft && ! HasilPengerjaan::where('draftKonten', $lokasiDraft)->whereNull('linkKonten')->exists()) {
+            Storage::disk('local')->delete($lokasiDraft);
+            HasilPengerjaan::where('draftKonten', $lokasiDraft)->update(['draftKonten' => null]);
+        }
+
+        $tanggalInsight = $hasil->fresh()->tanggalBolehKirimInsight()->format('d/m/Y');
+
+        return redirect()->route('influencer.hasil', $this->tujuan($hasil->pendaftaran, $hasil->akunSosmed->platform))
+            ->with('sukses', "Link konten berhasil dikirim. Insight dapat dikirim mulai {$tanggalInsight}.");
+    }
+
+    // Tabel 22 bagian 2: mengirim tangkapan layar insight dan angka metrik,
+    // paling cepat 7 hari setelah link konten dikirim
     public function kirimInsight(Request $request, HasilPengerjaan $hasil): RedirectResponse
     {
         $influencer = $request->user()->influencer;
 
         abort_unless($hasil->pendaftaran->idPengguna === $influencer->idPengguna, 404);
 
-        // Entry condition Tabel 22: draft sudah disetujui Admin
         if ($hasil->statusDraft !== 'disetujui') {
             return back()->with('gagal', 'Insight dapat dikirim setelah draft disetujui Admin.');
+        }
+
+        if (! $hasil->linkKonten) {
+            return back()->with('gagal', 'Kirim link konten terlebih dahulu.');
+        }
+
+        // Masa tunggu insight belum lewat (dicek juga di server, bukan hanya di tampilan)
+        if (! $hasil->bolehKirimInsight()) {
+            return back()->with('gagal', 'Insight dapat dikirim mulai ' . $hasil->tanggalBolehKirimInsight()->format('d/m/Y') . '.');
         }
 
         if (! in_array($hasil->statusInsight, ['belum_dikirim', 'ditolak'], true)) {
@@ -159,7 +229,6 @@ class HasilPengerjaanController extends Controller
         $aturanBerkas = config('aura.berkas.insight');
         $data = $request->validate(
             [
-                'linkKonten' => ['required', 'url:http,https', 'max:255'],
                 'fileInsight' => ['required', 'image', 'mimes:' . $aturanBerkas['ekstensi'], 'max:' . $aturanBerkas['maksimal']],
                 'jumlahViews' => ['required', 'integer', 'min:0', 'max:2147483647'],
                 'jumlahLikes' => ['required', 'integer', 'min:0', 'max:2147483647'],
@@ -170,7 +239,6 @@ class HasilPengerjaanController extends Controller
             ],
             [
                 'required' => ':attribute wajib diisi.',
-                'url' => 'Link Konten harus berupa tautan lengkap, contoh https://instagram.com/p/...',
                 'image' => 'Tangkapan layar harus berupa gambar.',
                 'mimes' => 'Format gambar harus jpg, png, atau webp.',
                 'fileInsight.max' => 'Ukuran gambar maksimal 5 MB.',
@@ -179,7 +247,6 @@ class HasilPengerjaanController extends Controller
                 'jumlahPengikut.min' => 'Jumlah Pengikut minimal 1.',
             ],
             [
-                'linkKonten' => 'Link Konten',
                 'fileInsight' => 'Tangkapan Layar Insight',
                 'jumlahViews' => 'Jumlah Views',
                 'jumlahLikes' => 'Jumlah Likes',
@@ -193,7 +260,6 @@ class HasilPengerjaanController extends Controller
         $lokasiLama = $hasil->fileInsight;
 
         $hasil->update([
-            'linkKonten' => $data['linkKonten'],
             'fileInsight' => $request->file('fileInsight')->store('insight', 'local'),
             'jumlahViews' => $data['jumlahViews'],
             'jumlahLikes' => $data['jumlahLikes'],
@@ -210,12 +276,12 @@ class HasilPengerjaanController extends Controller
             Storage::disk('local')->delete($lokasiLama);
         }
 
-        return redirect()->route('influencer.hasil', ['pilih' => $this->kunci($hasil->pendaftaran, $hasil->akunSosmed->platform)])
+        return redirect()->route('influencer.hasil', $this->tujuan($hasil->pendaftaran, $hasil->akunSosmed->platform))
             ->with('sukses', 'Insight berhasil dikirim dan menunggu pemeriksaan Admin.');
     }
 
-    // Satu baris di tabel = satu campaign yang diterima x satu platform di ketentuannya.
-    // Contoh: Serum Wajah punya ketentuan Instagram dan TikTok, maka ada dua baris.
+    // Satu baris di tabel = satu campaign yang diterima.
+    // Setiap baris berisi daftar platform dari ketentuan campaign, masing-masing dengan akun dan hasil pengerjaannya.
     private function daftarPengerjaan(Influencer $influencer): Collection
     {
         $akunSaya = $influencer->akunSosmed()->get()->keyBy('platform');
@@ -230,18 +296,20 @@ class HasilPengerjaanController extends Controller
             ->orderByDesc('idPendaftaran')
             ->get();
 
-        return $daftarPendaftaran->flatMap(function (PendaftaranCampaign $pendaftaran) use ($akunSaya) {
-            return $pendaftaran->campaign->ketentuanPlatform
+        return $daftarPendaftaran->map(fn (PendaftaranCampaign $pendaftaran) => (object) [
+            'pendaftaran' => $pendaftaran,
+            'campaign' => $pendaftaran->campaign,
+            'daftarPlatform' => $pendaftaran->campaign->ketentuanPlatform
                 ->pluck('platform')
                 ->unique()
+                ->values()
                 ->map(fn (string $platform) => (object) [
-                    'kunci' => $this->kunci($pendaftaran, $platform),
-                    'pendaftaran' => $pendaftaran,
-                    'platform' => $platform,
+                    'nama' => $platform,
+                    'kunci' => Str::lower($platform),
                     'akun' => $akunSaya->get($platform),
                     'hasil' => $pendaftaran->hasilPengerjaan->first(fn ($h) => $h->akunSosmed->platform === $platform),
-                ]);
-        })->values();
+                ]),
+        ])->values();
     }
 
     private function hasilUntukPlatform(PendaftaranCampaign $pendaftaran, string $platform): ?HasilPengerjaan
@@ -251,7 +319,7 @@ class HasilPengerjaanController extends Controller
             ->first();
     }
 
-    // Batas akhir pengiriman draft dan insight adalah Tanggal Selesai campaign.
+    // Batas akhir pengiriman draft, link, dan insight adalah Tanggal Selesai campaign.
     // Mengembalikan pesan penolakan, atau null kalau campaign belum berakhir.
     private function pesanSudahBerakhir(Campaign $campaign, string $jenis): ?string
     {
@@ -262,9 +330,9 @@ class HasilPengerjaanController extends Controller
         return "Campaign sudah berakhir pada {$campaign->tanggalSelesai->format('d/m/Y')}, sehingga {$jenis} tidak dapat dikirim lagi.";
     }
 
-    // Kunci baris untuk ?pilih=, contoh "3-instagram"
-    private function kunci(PendaftaranCampaign $pendaftaran, string $platform): string
+    // Parameter halaman setelah mengirim: campaign yang sama dan tab platform yang barusan dikirim
+    private function tujuan(PendaftaranCampaign $pendaftaran, string $platform): array
     {
-        return $pendaftaran->idPendaftaran . '-' . Str::lower($platform);
+        return ['pilih' => $pendaftaran->idPendaftaran, 'platform' => Str::lower($platform)];
     }
 }

@@ -50,7 +50,7 @@
                             <td>{{ number_format($ringkasan[$campaign->idCampaign]['views'], 0, ',', '.') }}</td>
                             <td><x-status jenis="statusLaporan" :nilai="$campaign->laporan?->statusLaporan ?? 'belum'" /></td>
                             <td class="kolom-aksi">
-                                <a class="tautan" href="{{ route('admin.laporan.detail', $campaign) }}">Pilih</a>
+                                <x-aksi ikon="file-earmark-text" label="Buka Laporan" :href="route('admin.laporan.detail', $campaign)" />
                             </td>
                         </tr>
                     @endforeach

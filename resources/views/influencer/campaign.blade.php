@@ -11,6 +11,8 @@
 
 @section('isi')
     @include('partials.peringatan-blacklist')
+    {{-- Daftar campaign hanya tampil kalau belum ada campaign yang dipilih --}}
+    @unless ($terpilih)
     <form method="GET" action="{{ route('influencer.campaign') }}" class="toolbar" data-filter-otomatis>
         <div class="input-cari">
             <i class="bi bi-search" aria-hidden="true"></i>
@@ -63,7 +65,7 @@
                                 @endif
                             </td>
                             <td class="kolom-aksi">
-                                <a class="tautan" href="{{ request()->fullUrlWithQuery(['pilih' => $campaign->idCampaign]) }}">Pilih</a>
+                                <x-aksi ikon="eye" label="Lihat Campaign" :href="request()->fullUrlWithQuery(['pilih' => $campaign->idCampaign])" />
                             </td>
                         </tr>
                     @endforeach
@@ -73,10 +75,15 @@
 
         {{ $daftar->links('partials.paginasi', ['label' => 'campaign']) }}
     @endif
+    @endunless
 
     {{-- ===== DETAIL CAMPAIGN ===== --}}
     @if ($terpilih)
         <section>
+            <a href="{{ request()->fullUrlWithoutQuery(['pilih']) }}" class="tautan-kembali mb-3">
+                <i class="bi bi-arrow-left" aria-hidden="true"></i>
+                Kembali ke Daftar Campaign
+            </a>
             <h2 class="judul-bagian">Detail Campaign</h2>
 
             <div class="panel-detail">
@@ -85,7 +92,7 @@
                     <p class="label-grup">Informasi Campaign</p>
                     <dl class="info-daftar">
                         <div><dt>Nama Campaign</dt><dd>{{ $terpilih->namaCampaign }}</dd></div>
-                        <div><dt>Deskripsi</dt><dd class="teks-panjang">{{ $terpilih->deskripsi }}</dd></div>
+                        <div><dt>Deskripsi</dt><dd><x-teks-ringkas :teks="$terpilih->deskripsi" /></dd></div>
                         <div><dt>Target Audiens</dt><dd>{{ $terpilih->targetAudiens }}</dd></div>
                         <div><dt>Kategori Influencer</dt><dd>{{ $terpilih->kategoriInfluencer }}</dd></div>
                         <div><dt>Lokasi Campaign</dt><dd>{{ $terpilih->lokasiCampaign }}</dd></div>

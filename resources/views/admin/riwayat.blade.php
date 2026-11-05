@@ -50,8 +50,7 @@
                             <td>{{ $campaign->jumlahInfluencer }}</td>
                             <td><x-status jenis="statusCampaign" :nilai="$campaign->statusCampaign" /></td>
                             <td class="kolom-aksi">
-                                {{-- Tabel 26 langkah 3-4: membuka detail riwayat --}}
-                                <a class="tautan" href="{{ route('admin.campaign.detail', $campaign) }}">Detail</a>
+                                <x-aksi ikon="eye" label="Detail" :href="route('admin.campaign.detail', $campaign)" />
                             </td>
                         </tr>
                     @endforeach

@@ -5,6 +5,7 @@ namespace App\Models;
 use App\Services\RekapCampaign;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
+use Illuminate\Support\Carbon;
 
 // Tabel 38
 class HasilPengerjaan extends ModelAura

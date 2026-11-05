@@ -11,6 +11,8 @@
 @endpush
 
 @section('isi')
+    {{-- Daftar pembayaran hanya tampil kalau belum ada data yang dipilih --}}
+    @unless ($terpilih)
     <form method="GET" action="{{ route('admin.pembayaran') }}" class="toolbar" data-filter-otomatis>
         <div class="input-cari">
             <i class="bi bi-search" aria-hidden="true"></i>
@@ -62,7 +64,7 @@
                             <td><span class="teks-kode">{{ $pembayaran?->idTransaksiGateway ?? '-' }}</span></td>
                             <td><x-status jenis="statusPembayaran" :nilai="$pembayaran?->statusPembayaran ?? 'belum'" /></td>
                             <td class="kolom-aksi">
-                                <a class="tautan" href="{{ request()->fullUrlWithQuery(['pilih' => $pendaftaran->idPendaftaran]) }}">Pilih</a>
+                                <x-aksi ikon="eye" label="Lihat Pembayaran" :href="request()->fullUrlWithQuery(['pilih' => $pendaftaran->idPendaftaran])" />
                             </td>
                         </tr>
                     @endforeach
@@ -72,6 +74,7 @@
 
         {{ $daftar->links('partials.paginasi', ['label' => 'data']) }}
     @endif
+    @endunless
 
     {{-- ===== INFORMASI PEMBAYARAN ===== --}}
     @if ($terpilih)
@@ -82,6 +85,10 @@
         @endphp
 
         <section>
+            <a href="{{ request()->fullUrlWithoutQuery(['pilih']) }}" class="tautan-kembali mb-3">
+                <i class="bi bi-arrow-left" aria-hidden="true"></i>
+                Kembali ke Daftar Pembayaran
+            </a>
             <h2 class="judul-bagian">Informasi Pembayaran</h2>
 
             <div class="panel-detail">

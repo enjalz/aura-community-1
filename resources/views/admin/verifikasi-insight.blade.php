@@ -53,7 +53,7 @@
                                     <td>{{ $hasil->tanggalPengirimanInsight?->format('d/m/Y H:i \W\I\B') ?? '-' }}</td>
                                     <td><x-status jenis="statusInsight" :nilai="$hasil->statusInsight" /></td>
                                     <td class="kolom-aksi">
-                                        <a class="tautan" href="{{ request()->fullUrlWithQuery(['pilih' => $hasil->idHasil]) }}">Periksa</a>
+                                        <x-aksi ikon="eye" label="Periksa" :href="request()->fullUrlWithQuery(['pilih' => $hasil->idHasil])" />
                                     </td>
                                 </tr>
                             @endforeach

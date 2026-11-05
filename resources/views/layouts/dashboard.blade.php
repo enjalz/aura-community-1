@@ -15,6 +15,7 @@
 @push('scripts')
     <script src="{{ asset('js/konfirmasi.js') }}"></script>
     <script src="{{ asset('js/password.js') }}"></script>
+    <script src="{{ asset('js/teks-ringkas.js') }}" defer></script>
 @endpush
 
 @section('content')

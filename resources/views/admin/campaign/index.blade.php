@@ -64,15 +64,12 @@
                             </td>
                             <td class="kolom-aksi">
                                 <div class="aksi-baris">
-                                    <a class="tautan" href="{{ route('admin.campaign.detail', $campaign) }}">Detail</a>
-                                    <a class="tautan" href="{{ route('admin.campaign.ubah', $campaign) }}">Ubah</a>
-                                    <form method="POST" action="{{ route('admin.campaign.hapus', $campaign) }}" class="form-sebaris"
-                                          data-konfirmasi="Hapus {{ $campaign->namaCampaign }}?">
-                                        @csrf
-                                        @method('DELETE')
-                                        <button type="submit" class="tautan-tombol">Hapus</button>
-                                    </form>
-                                    <a class="tautan" href="{{ route('admin.campaign.akses', $campaign) }}">Akses</a>
+                                    <x-aksi ikon="eye" label="Detail" :href="route('admin.campaign.detail', $campaign)" />
+                                    <x-aksi ikon="pencil" label="Ubah" :href="route('admin.campaign.ubah', $campaign)" />
+                                    <x-aksi ikon="shop" label="Akses Owner Brand" :href="route('admin.campaign.akses', $campaign)" />
+                                    <x-aksi ikon="trash" label="Hapus" bahaya
+                                            :action="route('admin.campaign.hapus', $campaign)" method="DELETE"
+                                            :konfirmasi="'Hapus ' . $campaign->namaCampaign . '?'" />
                                 </div>
                             </td>
                         </tr>

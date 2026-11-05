@@ -34,7 +34,6 @@ class PembayaranController extends Controller
         $daftar = (clone $query)->paginate(self::PER_HALAMAN)->withQueryString();
 
         $terpilih = $request->integer('pilih') ? (clone $query)->find($request->integer('pilih')) : null;
-        $terpilih ??= $daftar->first();
 
         return view('admin.pembayaran', [
             'daftar' => $daftar,
@@ -101,7 +100,7 @@ class PembayaranController extends Controller
             return back()->with('gagal', 'Pembayaran gagal: ' . $hasil['pesan']);
         }
 
-        return back()->with('sukses', 'Pembayaran dikirim ke Xendit dan berstatus Pending. Klik Cek Status untuk melihat hasil akhirnya.');
+        return redirect()->route('admin.pembayaran')->with('sukses', 'Pembayaran dikirim ke Xendit dan berstatus Pending. Klik Cek Status untuk melihat hasil akhirnya.');
     }
 
     // Menanyakan status akhir ke Xendit (pengganti webhook untuk server lokal)
@@ -126,8 +125,10 @@ class PembayaranController extends Controller
                 : null,
         ]);
 
+        // Berhasil: kembali ke tabel supaya Admin bisa memproses data berikutnya.
+        // Gagal atau masih pending: tetap di detail, supaya Admin bisa proses ulang atau cek lagi.
         return match ($hasil['status']) {
-            'berhasil' => back()->with('sukses', 'Pembayaran berhasil diterima rekening influencer.'),
+            'berhasil' => redirect()->route('admin.pembayaran')->with('sukses', 'Pembayaran berhasil diterima rekening influencer.'),
             'gagal' => back()->with('gagal', 'Pembayaran gagal' . ($hasil['pesan'] ? " ({$hasil['pesan']})" : '') . '. Periksa rekening influencer, lalu proses ulang.'),
             default => back()->with('sukses', 'Pembayaran masih diproses bank. Coba cek lagi beberapa saat lagi.'),
         };

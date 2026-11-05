@@ -38,7 +38,6 @@ class CampaignController extends Controller
         $terpilih = $request->integer('pilih')
             ? $this->campaignTerlihat($influencer)->find($request->integer('pilih'))
             : null;
-        $terpilih ??= $daftar->first();
         $terpilih?->load('ketentuanPlatform');
 
         // Pendaftaran milik influencer ini, dikelompokkan per idCampaign untuk kolom Status Pendaftaran

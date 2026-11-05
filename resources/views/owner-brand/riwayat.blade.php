@@ -37,7 +37,7 @@
                             <td>{{ $campaign->jumlahInfluencer }}</td>
                             <td><x-status jenis="statusCampaign" :nilai="$campaign->statusCampaign" /></td>
                             <td class="kolom-aksi">
-                                <a class="tautan" href="{{ route('owner.campaign', ['pilih' => $campaign->idCampaign]) }}">Detail</a>
+                                <x-aksi ikon="eye" label="Detail" :href="route('owner.campaign', ['pilih' => $campaign->idCampaign])" />
                             </td>
                         </tr>
                     @endforeach

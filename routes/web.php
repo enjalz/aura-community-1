@@ -170,10 +170,11 @@ Route::middleware('auth')->group(function () {
             Route::get('/campaign', [InfluencerCampaignController::class, 'index'])->name('campaign');
             Route::post('/campaign/{campaign}/daftar', [InfluencerCampaignController::class, 'daftar'])->name('campaign.daftar');
 
-            // Mengirim Hasil Pengerjaan (Tabel 18) dan Mengirim Insight (Tabel 22)
+            // Mengirim Hasil Pengerjaan (Tabel 18), Link Konten, dan Insight (Tabel 22)
             Route::controller(HasilPengerjaanController::class)->prefix('hasil-pengerjaan')->name('hasil')->group(function () {
                 Route::get('/', 'index');
                 Route::post('/{pendaftaran}/draft', 'kirimDraft')->name('.draft');
+                Route::post('/link/{hasil}', 'kirimLink')->name('.link');
                 Route::post('/insight/{hasil}', 'kirimInsight')->name('.insight');
             }); // tutup grup hasil pengerjaan
 
