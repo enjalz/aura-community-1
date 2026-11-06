@@ -6,10 +6,11 @@
 @section('judul', 'Laporan Hasil Campaign')
 
 @section('isi')
-    <nav class="mb-3" aria-label="Navigasi laporan">
-        <a class="tautan" href="{{ route('owner.laporan') }}"><i class="bi bi-arrow-left" aria-hidden="true"></i> Laporan Hasil Campaign</a>
-        <span class="teks-redup"> / {{ $campaign->namaCampaign }}</span>
-    </nav>
+{{-- Tombol kembali ke daftar laporan, sama seperti halaman detail lainnya --}}
+    <a href="{{ route('owner.laporan') }}" class="tautan-kembali mb-3">
+        <i class="bi bi-arrow-left" aria-hidden="true"></i>
+        Kembali ke Laporan
+    </a>
 
     <section class="panel-laporan">
         <div class="kepala-langkah">
