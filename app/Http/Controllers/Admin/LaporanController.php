@@ -5,6 +5,7 @@ namespace App\Http\Controllers\Admin;
 use App\Http\Controllers\Controller;
 use App\Models\Campaign;
 use App\Models\LaporanCampaign;
+use App\Models\Notifikasi;
 use App\Services\RekapCampaign;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Http\RedirectResponse;
@@ -96,6 +97,16 @@ class LaporanController extends Controller
                 'statusLaporan'          => $data['aksi'],
             ]
         );
+
+        // Laporan dipublikasikan: kabari semua Owner Brand yang punya akses ke campaign ini
+        if ($data['aksi'] === 'final') {
+            Notifikasi::kirim(
+                $campaign->ownerBrand()->pluck('OwnerBrand.idPengguna')->all(),
+                'Laporan campaign sudah tersedia',
+                "Laporan hasil {$campaign->namaCampaign} sudah selesai dan dapat Anda lihat.",
+                route('owner.laporan.detail', $campaign, false)
+            );
+        }
 
         $pesan = $data['aksi'] === 'final'
             ? 'Laporan difinalisasi dan dipublikasikan. Owner Brand terkait sekarang dapat melihatnya.'

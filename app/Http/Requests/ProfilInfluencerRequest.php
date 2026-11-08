@@ -5,7 +5,7 @@ namespace App\Http\Requests;
 use App\Http\Requests\Admin\InfluencerRequest;
 use App\Models\AkunSosmed;
 use App\Models\Influencer;
-use Illuminate\Validation\Rule;
+use App\Models\RekeningInfluencer;
 use Illuminate\Validation\Validator;
 
 // Validasi Mengelola Profil (Tabel 7) untuk Influencer (wireframe Gambar 86).
@@ -25,13 +25,13 @@ class ProfilInfluencerRequest extends InfluencerRequest
 
         // Rekening yang sudah ada tidak boleh dikosongkan, karena dipakai untuk pembayaran fee.
         // Kalau belum ada, boleh dikosongkan seluruhnya, atau diisi keempatnya sekaligus.
-        $wajib = $this->user()->influencer->rekening ? 'required' : 'nullable';
-        $daftarPenyedia = collect(config('aura.kanalPembayaran'))->flatMap(fn ($daftar) => array_keys($daftar))->all();
+        // Ketik ulang nomor dan centang pernyataan hanya wajib kalau rekening baru atau diubah.
+        $rekening = $this->user()->influencer->rekening;
 
-        $aturan['jenisRekening'] = [$wajib, 'required_with:namaPenyedia,nomorRekening,namaPemilik', Rule::in(['bank', 'ewallet'])];
-        $aturan['namaPenyedia'] = [$wajib, 'required_with:jenisRekening,nomorRekening,namaPemilik', Rule::in($daftarPenyedia)];
-        $aturan['nomorRekening'] = [$wajib, 'required_with:jenisRekening,namaPenyedia,namaPemilik', 'regex:/^[0-9]{5,30}$/'];
-        $aturan['namaPemilik'] = [$wajib, 'required_with:jenisRekening,namaPenyedia,nomorRekening', 'string', 'max:100'];
+        $aturan = array_merge($aturan, RekeningInfluencer::aturanValidasi(
+            $rekening ? 'required' : 'nullable',
+            $this->rekeningBerubah($rekening)
+        ));
 
         $aturan['passwordSaatIni'] = ['nullable', 'required_with:password', 'current_password'];
 
@@ -73,8 +73,7 @@ class ProfilInfluencerRequest extends InfluencerRequest
 
     public function messages(): array
     {
-        return [
-            'nomorRekening.regex' => 'Nomor Rekening hanya berisi angka, 5 sampai 30 digit.',
+        return RekeningInfluencer::pesanValidasi() + [
             'passwordSaatIni.required_with' => 'Isi password saat ini untuk mengganti password.',
             'current_password' => 'Password saat ini salah.',
         ] + parent::messages();
@@ -82,12 +81,7 @@ class ProfilInfluencerRequest extends InfluencerRequest
 
     public function attributes(): array
     {
-        return parent::attributes() + [
-            'jenisRekening' => 'Jenis Rekening',
-            'namaPenyedia' => 'Nama Penyedia',
-            'nomorRekening' => 'Nomor Rekening',
-            'namaPemilik' => 'Nama Pemilik',
-        ];
+        return parent::attributes() + RekeningInfluencer::namaKolom();
     }
 
     // Di InfluencerRequest, influencer diambil dari URL (Admin mengubah data orang lain).
@@ -95,5 +89,18 @@ class ProfilInfluencerRequest extends InfluencerRequest
     protected function influencerYangDiubah(): ?Influencer
     {
         return $this->user()->influencer;
+    }
+
+    // True kalau rekening baru diisi, atau salah satu dari empat datanya berbeda dari yang tersimpan
+    private function rekeningBerubah(?RekeningInfluencer $rekening): bool
+    {
+        if (! $rekening) {
+            return $this->filled('nomorRekening');
+        }
+
+        return (string) $this->input('jenisRekening') !== $rekening->jenisRekening
+            || (string) $this->input('namaPenyedia') !== $rekening->namaPenyedia
+            || (string) $this->input('nomorRekening') !== $rekening->nomorRekening
+            || trim((string) $this->input('namaPemilik')) !== $rekening->namaPemilik;
     }
 }

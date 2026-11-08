@@ -6,6 +6,7 @@ use App\Http\Controllers\Controller;
 use App\Models\Campaign;
 use App\Models\Feedback;
 use App\Models\HasilPengerjaan;
+use App\Models\Notifikasi;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
@@ -82,6 +83,16 @@ class HasilCampaignController extends Controller
             return back()->with('gagal', 'Draft ini sudah diperiksa sebelumnya.');
         }
 
+        // Notifikasi ke influencer: draft perlu diperbaiki, isi feedback ikut dikirim
+        $platform = $hasil->pendaftaran->campaign->kontenSama ? 'semua platform' : $hasil->akunSosmed->platform;
+
+        Notifikasi::kirim(
+            $hasil->pendaftaran->idPengguna,
+            'Draft perlu revisi',
+            "{$hasil->pendaftaran->campaign->namaCampaign} ({$platform}): {$data['isiFeedback']}",
+            Notifikasi::tautanHasil($hasil)
+        );
+
         return back()->with('sukses', 'Feedback terkirim. Status draft berubah menjadi Revisi.');
     }
 
@@ -96,9 +107,20 @@ class HasilCampaignController extends Controller
             return back()->with('gagal', 'Draft ini sudah diperiksa sebelumnya.');
         }
 
+        // Notifikasi ke influencer: draft disetujui, lanjut unggah konten dan kirim link
+        $platform = $hasil->pendaftaran->campaign->kontenSama ? 'semua platform' : $hasil->akunSosmed->platform;
+
+        Notifikasi::kirim(
+            $hasil->pendaftaran->idPengguna,
+            'Draft disetujui, silakan unggah konten',
+            "Draft {$hasil->pendaftaran->campaign->namaCampaign} ({$platform}) disetujui. Unggah kontennya, lalu kirim link konten.",
+            Notifikasi::tautanHasil($hasil)
+        );
+
         return back()->with('sukses', 'Draft disetujui. Influencer dapat mengunggah konten dan mengirim insight.');
     }
-        // Konten sama: draft yang sama dipakai di semua platform, jadi pemeriksaannya berlaku untuk semuanya.
+
+    // Konten sama: draft yang sama dipakai di semua platform, jadi pemeriksaannya berlaku untuk semuanya.
     // Konten berbeda: hanya hasil yang dipilih.
     private function idHasilTerkait(HasilPengerjaan $hasil): array
     {

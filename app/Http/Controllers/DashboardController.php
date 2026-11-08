@@ -2,6 +2,8 @@
 
 namespace App\Http\Controllers;
 
+use App\Http\Controllers\Admin\PembayaranController;
+use App\Models\PendaftaranCampaign;
 use App\Models\Campaign;
 use App\Models\Feedback;
 use App\Models\HasilPengerjaan;
@@ -83,7 +85,15 @@ class DashboardController extends Controller
             'perluDitindak' => [
                 ['label' => 'Draft menunggu pemeriksaan', 'jumlah' => HasilPengerjaan::where('statusDraft', 'menunggu')->count(), 'route' => 'admin.hasil'],
                 ['label' => 'Insight menunggu pemeriksaan', 'jumlah' => HasilPengerjaan::where('statusInsight', 'menunggu')->count(), 'route' => 'admin.insight'],
-                ['label' => 'Pembayaran pending', 'jumlah' => Pembayaran::where('statusPembayaran', 'pending')->count(), 'route' => 'admin.pembayaran'],
+                                // Insight sudah disetujui semua, tetapi pembayarannya belum pernah diproses
+                [
+                    'label' => 'Belum dibayar',
+                    'jumlah' => PembayaranController::syaratSiapDibayar(
+                        PendaftaranCampaign::where('statusPendaftaran', 'diterima')->doesntHave('pembayaran')
+                    )->count(),
+                    'route' => 'admin.pembayaran',
+                    'parameter' => ['status' => 'belum'],
+                ],
             ],
             'campaignBerjalan' => Campaign::where('statusCampaign', 'berjalan')->orderBy('tanggalSelesai')->limit(self::JUMLAH_BARIS)->get(),
         ]);

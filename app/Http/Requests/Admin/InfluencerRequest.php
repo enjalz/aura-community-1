@@ -11,7 +11,7 @@ use Illuminate\Validation\Rule;
 use Illuminate\Validation\Validator;
 
 // Validasi form Tambah dan Ubah Data Influencer (Tabel 10, langkah 4: "Sistem memvalidasi data").
-// Dipakai oleh DataInfluencerController@store dan @update.
+// Dipakai oleh DataInfluencerController@store dan @update, dan diturunkan ke ProfilInfluencerRequest.
 class InfluencerRequest extends FormRequest
 {
     // Hak akses sudah dijaga middleware peran:admin di routes/web.php
@@ -34,6 +34,7 @@ class InfluencerRequest extends FormRequest
     {
         // Saat Ubah, route membawa influencer yang sedang diubah. Saat Tambah, nilainya null.
         $influencer = $this->influencerYangDiubah();
+        $minimalPengikut = (int) config('aura.minimalPengikut');
 
         $aturan = [
             'nama' => ['required', 'string', 'max:100'],
@@ -47,14 +48,25 @@ class InfluencerRequest extends FormRequest
         ];
 
         foreach (config('aura.platform') as $kunci => $nama) {
-            $idAkunLama = $influencer?->akunSosmed->firstWhere('platform', $nama)?->idAkun;
+            $akunLama = $influencer?->akunSosmed->firstWhere('platform', $nama);
+
+            // Syarat minimal pengikut berlaku untuk akun baru dan angka yang diubah.
+            // Kalau angkanya sama dengan yang tersimpan (misal turun setelah insight disetujui),
+            // influencer tetap bisa menyimpan bagian profil yang lain.
+            $pengikutTidakBerubah = $akunLama
+                && (string) $this->input("{$kunci}_pengikut") === (string) $akunLama->jumlahPengikut;
 
             $aturan["{$kunci}_username"] = [
                 'nullable', 'string', 'max:100',
                 "required_with:{$kunci}_pengikut,{$kunci}_link",
-                Rule::unique('AkunSosmed', 'username')->where('platform', $nama)->ignore($idAkunLama, 'idAkun'),
+                Rule::unique('AkunSosmed', 'username')->where('platform', $nama)->ignore($akunLama?->idAkun, 'idAkun'),
             ];
-            $aturan["{$kunci}_pengikut"] = ['nullable', 'integer', 'min:0', 'max:2147483647', "required_with:{$kunci}_username,{$kunci}_link"];
+            $aturan["{$kunci}_pengikut"] = [
+                'nullable', 'integer',
+                $pengikutTidakBerubah ? 'min:0' : "min:{$minimalPengikut}",
+                'max:2147483647',
+                "required_with:{$kunci}_username,{$kunci}_link",
+            ];
             $aturan["{$kunci}_link"] = ['nullable', 'url:http,https', 'max:255', "required_with:{$kunci}_username,{$kunci}_pengikut"];
 
             // Admin boleh mengosongkan demografi (diisi influencer sendiri di profil)
@@ -92,9 +104,9 @@ class InfluencerRequest extends FormRequest
 
     public function messages(): array
     {
-        return [
+        $pesan = [
             'required' => ':attribute wajib diisi.',
-            'required_with' => ':attribute wajib diisi karena data lain pada platform ini sudah diisi.',
+            'required_with' => ':attribute wajib diisi.',
             'email' => 'Format email tidak valid.',
             'unique' => ':attribute sudah terdaftar.',
             'min.string' => ':attribute minimal :min karakter.',
@@ -108,6 +120,16 @@ class InfluencerRequest extends FormRequest
             'url' => ':attribute harus berupa tautan lengkap, contoh https://instagram.com/namaanda.',
             'regex' => 'Format :attribute tidak valid. Gunakan angka, 8 sampai 20 digit.',
         ];
+
+        // Pesan khusus syarat minimal pengikut, contoh: "Jumlah pengikut TikTok minimal 1.000."
+        $minimalTampil = number_format((int) config('aura.minimalPengikut'), 0, ',', '.');
+
+        foreach (config('aura.platform') as $kunci => $nama) {
+            $pesan["{$kunci}_pengikut.min"] = "Jumlah pengikut {$nama} minimal {$minimalTampil}. "
+                . "Akun dengan pengikut di bawah {$minimalTampil} belum dapat bergabung di Aura Community.";
+        }
+
+        return $pesan;
     }
 
     // Nama kolom yang tampil di pesan error

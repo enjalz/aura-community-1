@@ -4,6 +4,8 @@ namespace App\Http\Controllers\Influencer;
 
 use App\Http\Controllers\Controller;
 use App\Http\Requests\ProfilInfluencerRequest;
+use App\Models\Notifikasi;
+use App\Models\Pembayaran;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
@@ -28,6 +30,15 @@ class ProfilController extends Controller
         $pengguna = $request->user();
         $influencer = $pengguna->influencer;
 
+        // Dicatat sebelum disimpan, supaya setelahnya bisa diketahui apa yang berubah (untuk notifikasi Admin)
+        $idAkunMenungguLama = $influencer->akunSosmed()->where('statusVerifikasi', 'menunggu')->pluck('idAkun');
+        $pembayaranTertahan = Pembayaran::with('pendaftaran.campaign')
+            ->where('statusPembayaran', 'gagal')
+            ->whereNotNull('rekeningGagal')
+            ->whereHas('pendaftaran', fn ($q) => $q->where('idPengguna', $influencer->idPengguna))
+            ->get()
+            ->filter(fn ($pembayaran) => $pembayaran->menungguRekeningBaru($influencer->rekening));
+
         // Pengguna, Influencer, AkunSosmed, dan RekeningInfluencer disimpan bersama.
         // Akun media sosial yang ditambah atau diubah otomatis berstatus menunggu verifikasi (lihat AkunSosmed::booted).
         DB::transaction(function () use ($pengguna, $influencer, $data) {
@@ -45,6 +56,34 @@ class ProfilController extends Controller
                 ]);
             }
         });
+
+        // Akun media sosial yang baru masuk antrean verifikasi
+        $akunBaruMenunggu = $influencer->akunSosmed()
+            ->where('statusVerifikasi', 'menunggu')
+            ->whereNotIn('idAkun', $idAkunMenungguLama)
+            ->get();
+
+        if ($akunBaruMenunggu->isNotEmpty()) {
+            Notifikasi::kirimKeAdmin(
+                'Akun media sosial perlu diverifikasi',
+                "{$pengguna->nama} menambah atau mengubah akun "
+                    . $akunBaruMenunggu->map(fn ($akun) => "{$akun->platform} @{$akun->username}")->join(', ', ' dan ') . '.',
+                route('admin.verifikasi', [], false)
+            );
+        }
+
+        // Rekening yang sebelumnya gagal menerima transfer sudah diganti: pembayaran siap diproses ulang
+        $rekeningSekarang = $influencer->rekening()->first();
+
+        foreach ($pembayaranTertahan as $pembayaran) {
+            if (! $pembayaran->menungguRekeningBaru($rekeningSekarang)) {
+                Notifikasi::kirimKeAdmin(
+                    'Rekening influencer diperbarui',
+                    "{$pengguna->nama} sudah memperbarui rekening. Pembayaran fee {$pembayaran->pendaftaran->campaign->namaCampaign} siap diproses ulang.",
+                    route('admin.pembayaran', ['pilih' => $pembayaran->idPendaftaran], false)
+                );
+            }
+        }
 
         $pesan = $influencer->akunSosmed()->where('statusVerifikasi', 'menunggu')->exists()
             ? 'Profil berhasil diperbarui. Akun media sosial yang ditambah atau diubah menunggu verifikasi Admin.'

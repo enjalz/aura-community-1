@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use App\Models\AkunSosmed;
 use App\Models\Influencer;
+use App\Models\Notifikasi;
 use App\Models\Pengguna;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
@@ -28,6 +29,8 @@ class RegistrasiController extends Controller
     public function simpan(Request $request): RedirectResponse
     {
         $platform = config('aura.platform');
+        $minimalPengikut = (int) config('aura.minimalPengikut');
+        $minimalTampil = number_format($minimalPengikut, 0, ',', '.');   // contoh: 1.000
 
         // Rapikan input sebelum divalidasi
         $request->merge([
@@ -54,33 +57,9 @@ class RegistrasiController extends Controller
             'alamat' => 'Alamat',
         ];
 
-        // Satu platform boleh dikosongkan seluruhnya. Kalau salah satu kolomnya diisi,
-        // semuanya wajib diisi, termasuk demografi audiens dan screenshot buktinya.
-        foreach ($platform as $kunci => $nama) {
-            $aturan["{$kunci}_username"] = [
-                'nullable', 'string', 'max:100',
-                "required_with:{$kunci}_pengikut,{$kunci}_link",
-                Rule::unique('AkunSosmed', 'username')->where('platform', $nama),
-            ];
-            $aturan["{$kunci}_pengikut"] = [
-                'nullable', 'integer', 'min:0', 'max:2147483647',
-                "required_with:{$kunci}_username,{$kunci}_link",
-            ];
-            $aturan["{$kunci}_link"] = [
-                'nullable', 'url:http,https', 'max:255',
-                "required_with:{$kunci}_username,{$kunci}_pengikut",
-            ];
-            $aturan += AkunSosmed::aturanDemografi($kunci, wajibIsian: true, wajibBerkas: true);
-
-            $namaKolom["{$kunci}_username"] = "Username {$nama}";
-            $namaKolom["{$kunci}_pengikut"] = "Jumlah pengikut {$nama}";
-            $namaKolom["{$kunci}_link"] = "Link profil {$nama}";
-            $namaKolom += AkunSosmed::namaKolomDemografi($kunci, $nama);
-        }
-
         $pesan = [
             'required' => ':attribute wajib diisi.',
-            'required_with' => ':attribute wajib diisi karena data lain pada platform ini sudah diisi.',
+            'required_with' => ':attribute wajib diisi.',
             'email' => 'Format email tidak valid.',
             'unique' => ':attribute sudah terdaftar.',
             'min.string' => ':attribute minimal :min karakter.',
@@ -95,6 +74,34 @@ class RegistrasiController extends Controller
             'url' => ':attribute harus berupa tautan lengkap, contoh https://instagram.com/namaanda.',
             'regex' => 'Format :attribute tidak valid. Gunakan angka, 8 sampai 20 digit.',
         ];
+
+        // Satu platform boleh dikosongkan seluruhnya. Kalau salah satu kolomnya diisi,
+        // semuanya wajib diisi, termasuk demografi audiens dan screenshot buktinya.
+        // Setiap akun yang diisi wajib memenuhi syarat minimal pengikut (config aura.minimalPengikut).
+        foreach ($platform as $kunci => $nama) {
+            $aturan["{$kunci}_username"] = [
+                'nullable', 'string', 'max:100',
+                "required_with:{$kunci}_pengikut,{$kunci}_link",
+                Rule::unique('AkunSosmed', 'username')->where('platform', $nama),
+            ];
+            $aturan["{$kunci}_pengikut"] = [
+                'nullable', 'integer', "min:{$minimalPengikut}", 'max:2147483647',
+                "required_with:{$kunci}_username,{$kunci}_link",
+            ];
+            $aturan["{$kunci}_link"] = [
+                'nullable', 'url:http,https', 'max:255',
+                "required_with:{$kunci}_username,{$kunci}_pengikut",
+            ];
+            $aturan += AkunSosmed::aturanDemografi($kunci, wajibIsian: true, wajibBerkas: true);
+
+            $namaKolom["{$kunci}_username"] = "Username {$nama}";
+            $namaKolom["{$kunci}_pengikut"] = "Jumlah pengikut {$nama}";
+            $namaKolom["{$kunci}_link"] = "Link profil {$nama}";
+            $namaKolom += AkunSosmed::namaKolomDemografi($kunci, $nama);
+
+            $pesan["{$kunci}_pengikut.min"] = "Jumlah pengikut {$nama} minimal {$minimalTampil}. "
+                . "Akun dengan pengikut di bawah {$minimalTampil} belum dapat bergabung di Aura Community.";
+        }
 
         $validator = Validator::make($request->all(), $aturan, $pesan, $namaKolom);
 
@@ -114,7 +121,7 @@ class RegistrasiController extends Controller
         $data = $validator->validated();
 
         // Disimpan ke tiga tabel sekaligus. Kalau satu gagal, semuanya dibatalkan.
-        DB::transaction(function () use ($data) {
+        $pengguna = DB::transaction(function () use ($data) {
             $pengguna = Pengguna::create([
                 'nama' => $data['nama'],
                 'email' => $data['email'],
@@ -131,7 +138,16 @@ class RegistrasiController extends Controller
             ]);
 
             $influencer->simpanAkunSosmed($data);
+
+            return $pengguna;
         });
+
+        // Notifikasi ke Admin: ada akun baru yang perlu diverifikasi (Tabel 8)
+        Notifikasi::kirimKeAdmin(
+            'Influencer baru menunggu verifikasi',
+            "{$pengguna->nama} mendaftar sebagai influencer kategori {$data['kategori']}.",
+            route('admin.verifikasi', ['pilih' => $pengguna->idPengguna], false)
+        );
 
         return redirect()->route('login')->with(
             'sukses',

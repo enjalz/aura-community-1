@@ -117,9 +117,25 @@
                 </section>
 
                 {{-- ===== REKENING ===== --}}
-                <section class="form-kartu">
+                <section class="form-kartu" id="rekening">
                     <h2 class="form-judul">Rekening</h2>
                     <p class="teks-bantuan">Dipakai untuk pembayaran fee campaign.</p>
+
+                    {{-- Pembayaran fee yang gagal karena rekening ini dan belum diganti --}}
+                    @php
+                        $pembayaranTertahan = \App\Models\Pembayaran::where('statusPembayaran', 'gagal')
+                            ->whereNotNull('rekeningGagal')
+                            ->whereHas('pendaftaran', fn ($q) => $q->where('idPengguna', $pengguna->idPengguna))
+                            ->get()
+                            ->filter(fn ($p) => $p->menungguRekeningBaru($rekening));
+                    @endphp
+                    @if ($pembayaranTertahan->isNotEmpty())
+                        <div class="alert-aura alert-gagal" role="alert">
+                            <strong>Rekening ini gagal menerima transfer fee.</strong>
+                            Harap cek ulang nama penyedia, nomor rekening, dan nama pemilik, lalu simpan perubahan.
+                            Admin akan memproses ulang pembayaran setelah rekening diperbarui.
+                        </div>
+                    @endif
 
                     <div class="row g-3">
                         <div class="col-md-6">
@@ -157,7 +173,30 @@
                             <x-input name="nomorRekening" label="Nomor Rekening" inputmode="numeric" :value="$rekening?->nomorRekening" />
                         </div>
                         <div class="col-md-6">
+                            {{-- Ketik ulang supaya salah ketik ketahuan sebelum disimpan --}}
+                            <x-input name="nomorRekening_confirmation" label="Ketik Ulang Nomor Rekening" inputmode="numeric" autocomplete="off" />
+                        </div>
+                        <div class="col-12">
+                            <p class="teks-bantuan mb-0">
+                                Bank: nomor rekening sesuai buku tabungan. E-wallet: nomor HP yang terdaftar di akun e-wallet (diawali 08).
+                            </p>
+                        </div>
+                        <div class="col-12">
                             <x-input name="namaPemilik" label="Nama Pemilik" :value="$rekening?->namaPemilik" />
+                        </div>
+                        <div class="col-12">
+                            <div class="form-check">
+                                <input type="checkbox" id="konfirmasiRekening" name="konfirmasiRekening" value="1"
+                                       @class(['form-check-input', 'is-invalid' => $errors->has('konfirmasiRekening')])
+                                       @checked(old('konfirmasiRekening'))>
+                                <label for="konfirmasiRekening" class="form-check-label">
+                                    Saya memastikan nomor rekening dan nama pemilik sudah sesuai buku tabungan atau akun e-wallet.
+                                </label>
+                            </div>
+                            @error('konfirmasiRekening')
+                                <p class="pesan-error">{{ $message }}</p>
+                            @enderror
+                            <p class="teks-bantuan">Ketik ulang nomor dan centang pernyataan ini setiap kali data rekening diisi atau diubah.</p>
                         </div>
                     </div>
                 </section>

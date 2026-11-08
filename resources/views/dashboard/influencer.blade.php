@@ -65,7 +65,7 @@
                                 </td>
                                 <td class="kolom-aksi">
                                     {{-- Yang sudah diterima diarahkan ke Hasil Pengerjaan, yang lain ke detail campaign --}}
-                                    <x-aksi ikon="eye" label="Detail" :href="$pendaftaran->statusPendaftaran === 'diterima' ? route('influencer.hasil') : route('influencer.campaign', ['pilih' => $pendaftaran->idCampaign])" />
+                                    <x-aksi ikon="eye" label="Detail" :href="$pendaftaran->statusPendaftaran === 'diterima' ? route('influencer.hasil', ['pilih' => $pendaftaran->idPendaftaran]) : route('influencer.campaign', ['pilih' => $pendaftaran->idCampaign])" />
                                 </td>
                             </tr>
                         @endforeach
@@ -97,7 +97,7 @@
                                 {{-- Str::limit memotong teks panjang menjadi 80 karakter dengan "..." di akhir --}}
                                 <td class="sel-teks">{{ \Illuminate\Support\Str::limit($feedback->isiFeedback, 80) }}</td>
                                 <td>{{ $feedback->tanggalFeedback->format('d/m/Y') }}</td>
-                                <td class="kolom-aksi"><x-aksi ikon="chat-left-text" label="Lihat Feedback" :href="route('influencer.hasil')" /></td>
+                                <td class="kolom-aksi"><x-aksi ikon="chat-left-text" label="Lihat Feedback" :href="route('influencer.hasil', ['pilih' => $feedback->hasilPengerjaan->idPendaftaran])" /></td>
                             </tr>
                         @endforeach
                     </tbody>

@@ -19,6 +19,7 @@ use App\Http\Controllers\Influencer\HasilPengerjaanController;
 use App\Http\Controllers\Influencer\ProfilController as InfluencerProfilController;
 use App\Http\Controllers\Influencer\RiwayatController as InfluencerRiwayatController;
 use App\Http\Controllers\LoginController;
+use App\Http\Controllers\NotifikasiController;
 use App\Http\Controllers\OwnerBrand\CampaignController as OwnerCampaignController;
 use App\Http\Controllers\OwnerBrand\LaporanController as OwnerLaporanController;
 use App\Http\Controllers\OwnerBrand\ProfilController as OwnerProfilController;
@@ -51,6 +52,14 @@ Route::middleware('auth')->group(function () {
 
     // Membuka screenshot insight audiens (demografi)
     Route::get('/berkas/demografi/{akun}', [BerkasController::class, 'demografi'])->name('berkas.demografi');
+
+    // Notifikasi (semua peran)
+    Route::controller(NotifikasiController::class)->prefix('notifikasi')->name('notifikasi')->group(function () {
+        Route::post('/dibaca-semua', 'tandaiSemuaDibaca')->name('.dibaca-semua');
+        Route::get('/{notifikasi}', 'buka')->name('.buka');
+        Route::post('/{notifikasi}/dibaca', 'tandaiDibaca')->name('.dibaca');
+        Route::delete('/{notifikasi}', 'hapus')->name('.hapus');
+    }); // tutup grup notifikasi
 
     // ===== ADMIN =====
     Route::middleware('peran:admin')->prefix('admin')->name('admin.')->group(function () {

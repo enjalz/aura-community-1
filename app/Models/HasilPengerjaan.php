@@ -16,7 +16,8 @@ class HasilPengerjaan extends ModelAura
     // $fillable = daftar kolom yang BOLEH diisi lewat create()/update().
     protected $fillable = [
         'idPendaftaran', 'idAkun', 'draftKonten', 'tanggalPengirimanDraft',
-        'linkKonten', 'fileInsight', 'jumlahViews', 'jumlahLikes', 'jumlahKomentar',
+        'linkKonten', 'tanggalPengirimanLink',
+        'fileInsight', 'jumlahViews', 'jumlahLikes', 'jumlahKomentar',
         'jumlahShare', 'jumlahSave', // interaksi tambahan untuk engagement rate
         'jumlahPengikut',            // pengikut akun saat insight dikirim
         'tanggalPengirimanInsight', 'statusDraft', 'statusInsight',
@@ -26,6 +27,7 @@ class HasilPengerjaan extends ModelAura
     {
         return [
             'tanggalPengirimanDraft'   => 'datetime',
+            'tanggalPengirimanLink'    => 'datetime',
             'tanggalPengirimanInsight' => 'datetime',
         ];
     }
@@ -43,6 +45,24 @@ class HasilPengerjaan extends ModelAura
     public function feedback(): HasMany
     {
         return $this->hasMany(Feedback::class, 'idHasil');
+    }
+
+    // Tanggal paling cepat insight boleh dikirim: beberapa hari setelah link konten dikirim
+    // (config aura.hariTungguInsight). Null kalau link belum dikirim.
+    public function tanggalBolehKirimInsight(): ?Carbon
+    {
+        return $this->tanggalPengirimanLink
+            ?->copy()
+            ->addDays(config('aura.hariTungguInsight'))
+            ->startOfDay();
+    }
+
+    // True kalau masa tunggu insight sudah lewat
+    public function bolehKirimInsight(): bool
+    {
+        $tanggal = $this->tanggalBolehKirimInsight();
+
+        return $tanggal !== null && ! today()->lt($tanggal);
     }
 
     // ER satu konten: (likes + komentar + share + save) / views x 100%

@@ -12,7 +12,7 @@ class Pembayaran extends ModelAura
 
     protected $fillable = [
         'idPendaftaran', 'idPengguna', 'idRekening', 'jumlahPembayaran', 'tanggalPembayaran',
-        'statusPembayaran', 'idTransaksiGateway', 'waktuKonfirmasi',
+        'statusPembayaran', 'idTransaksiGateway', 'waktuKonfirmasi', 'kodeGagal', 'rekeningGagal',
     ];
 
     protected function casts(): array
@@ -32,5 +32,25 @@ class Pembayaran extends ModelAura
     public function rekening(): BelongsTo
     {
         return $this->belongsTo(RekeningInfluencer::class, 'idRekening');
+    }
+
+    // Ringkasan rekening, contoh "BCA · 121212 · Salsa Anindya".
+    // Disimpan di rekeningGagal saat transfer gagal karena rekening, untuk mengetahui apakah influencer sudah menggantinya.
+    public static function ringkasRekening(?RekeningInfluencer $rekening): ?string
+    {
+        return $rekening
+            ? "{$rekening->namaPenyedia} · {$rekening->nomorRekening} · {$rekening->namaPemilik}"
+            : null;
+    }
+
+    // True kalau gagal karena rekening dan influencer BELUM mengganti rekeningnya.
+    // Dipakai untuk mengunci tombol bayar ulang di halaman Admin.
+    public function menungguRekeningBaru(?RekeningInfluencer $rekeningSekarang): bool
+    {
+        if ($this->statusPembayaran !== 'gagal' || $this->rekeningGagal === null) {
+            return false;
+        }
+
+        return ! $rekeningSekarang || self::ringkasRekening($rekeningSekarang) === $this->rekeningGagal;
     }
 }

@@ -5,6 +5,7 @@ namespace App\Http\Controllers\Admin;
 use App\Http\Controllers\Controller;
 use App\Models\AkunSosmed;
 use App\Models\Influencer;
+use App\Models\Notifikasi;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\View\View;
@@ -74,6 +75,13 @@ class VerifikasiAkunController extends Controller
             return redirect()->route('admin.verifikasi')->with('gagal', 'Akun ini sudah diproses sebelumnya.');
         }
 
+        Notifikasi::kirim(
+            $akun->idPengguna,
+            "Akun {$akun->platform} terverifikasi",
+            "Akun {$akun->platform} @{$akun->username} sudah diverifikasi dan dapat dipakai untuk mendaftar campaign.",
+            route('influencer.profil', [], false)
+        );
+
         return redirect()->route('admin.verifikasi')
             ->with('sukses', "Akun {$akun->platform} @{$akun->username} berhasil diverifikasi.");
     }
@@ -97,6 +105,13 @@ class VerifikasiAkunController extends Controller
             return redirect()->route('admin.verifikasi')->with('gagal', 'Akun ini sudah diproses sebelumnya.');
         }
 
+        Notifikasi::kirim(
+            $akun->idPengguna,
+            "Akun {$akun->platform} ditolak",
+            "Akun {$akun->platform} @{$akun->username} ditolak: {$data['alasan']} Perbaiki datanya di Profil.",
+            route('influencer.profil', [], false)
+        );
+
         return redirect()->route('admin.verifikasi')
             ->with('sukses', "Akun {$akun->platform} @{$akun->username} ditolak.");
     }
@@ -112,6 +127,23 @@ class VerifikasiAkunController extends Controller
         if ($jumlahBerubah === 0) {
             return redirect()->route('admin.verifikasi')
                 ->with('gagal', 'Akun ini sudah diproses sebelumnya.');
+        }
+
+        // Notifikasi ke influencer: hasil verifikasi akunnya
+        if ($statusBaru === 'diverifikasi') {
+            Notifikasi::kirim(
+                $influencer->idPengguna,
+                'Akun Anda sudah diverifikasi',
+                'Selamat bergabung di Aura Community. Anda sekarang dapat melihat dan mendaftar campaign.',
+                route('influencer.campaign', [], false)
+            );
+        } else {
+            Notifikasi::kirim(
+                $influencer->idPengguna,
+                'Verifikasi akun ditolak',
+                'Data registrasi Anda belum memenuhi persyaratan Aura Community.',
+                route('influencer.status', [], false)
+            );
         }
 
         return redirect()->route('admin.verifikasi')

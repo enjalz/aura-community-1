@@ -220,8 +220,29 @@
                                         <p class="pesan-error">{{ $message }}</p>
                                     @enderror
                                 </div>
+
                                 <x-input name="nomorRekening" label="Nomor Rekening" inputmode="numeric" placeholder="Hanya angka" />
+                                {{-- Ketik ulang supaya salah ketik ketahuan sebelum disimpan --}}
+                                <x-input name="nomorRekening_confirmation" label="Ketik Ulang Nomor Rekening" inputmode="numeric" autocomplete="off" />
+                                <p class="teks-bantuan">
+                                    Bank: nomor rekening sesuai buku tabungan. E-wallet: nomor HP yang terdaftar di akun e-wallet (diawali 08).
+                                </p>
+
                                 <x-input name="namaPemilik" label="Nama Pemilik" :value="auth()->user()->nama" />
+
+                                <div>
+                                    <div class="form-check">
+                                        <input type="checkbox" id="konfirmasiRekening" name="konfirmasiRekening" value="1"
+                                               @class(['form-check-input', 'is-invalid' => $errors->has('konfirmasiRekening')])
+                                               @checked(old('konfirmasiRekening'))>
+                                        <label for="konfirmasiRekening" class="form-check-label">
+                                            Saya memastikan nomor rekening dan nama pemilik sudah sesuai buku tabungan atau akun e-wallet.
+                                        </label>
+                                    </div>
+                                    @error('konfirmasiRekening')
+                                        <p class="pesan-error">{{ $message }}</p>
+                                    @enderror
+                                </div>
                             @endif
 
                             @if ($terpilih->periodeUnggah())

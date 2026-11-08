@@ -6,6 +6,7 @@ use App\Http\Controllers\Controller;
 use App\Models\Campaign;
 use App\Models\HasilPengerjaan;
 use App\Models\Influencer;
+use App\Models\Notifikasi;
 use App\Models\PendaftaranCampaign;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
@@ -143,6 +144,13 @@ class HasilPengerjaanController extends Controller
             Storage::disk('local')->delete($lokasiLama);
         }
 
+        // Notifikasi ke Admin: ada draft yang perlu diperiksa (Tabel 19)
+        Notifikasi::kirimKeAdmin(
+            'Draft baru perlu diperiksa',
+            "{$request->user()->nama} mengirim draft {$campaign->namaCampaign} ({$daftarPlatform->join(', ')}).",
+            route('admin.hasil', [], false)
+        );
+
         return redirect()->route('influencer.hasil', $this->tujuan($pendaftaran, $data['platform']))
             ->with('sukses', 'Draft berhasil dikirim dan menunggu pemeriksaan Admin.');
     }
@@ -275,6 +283,13 @@ class HasilPengerjaanController extends Controller
         if ($lokasiLama) {
             Storage::disk('local')->delete($lokasiLama);
         }
+
+        // Notifikasi ke Admin: ada insight yang perlu diperiksa (Tabel 23)
+        Notifikasi::kirimKeAdmin(
+            'Insight baru perlu diperiksa',
+            "{$request->user()->nama} mengirim insight {$hasil->pendaftaran->campaign->namaCampaign} ({$hasil->akunSosmed->platform}).",
+            route('admin.insight', ['pilih' => $hasil->idHasil], false)
+        );
 
         return redirect()->route('influencer.hasil', $this->tujuan($hasil->pendaftaran, $hasil->akunSosmed->platform))
             ->with('sukses', 'Insight berhasil dikirim dan menunggu pemeriksaan Admin.');

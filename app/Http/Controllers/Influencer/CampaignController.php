@@ -5,13 +5,15 @@ namespace App\Http\Controllers\Influencer;
 use App\Http\Controllers\Controller;
 use App\Models\Campaign;
 use App\Models\Influencer;
+use App\Models\Notifikasi;
 use App\Models\PendaftaranCampaign;
+use App\Models\RekeningInfluencer;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
+use Illuminate\Support\Arr;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Str;
-use Illuminate\Validation\Rule;
 use Illuminate\View\View;
 
 // Use case Melihat Detail Campaign (Tabel 16) dan Mendaftar Campaign (Tabel 17) untuk Influencer
@@ -70,30 +72,24 @@ class CampaignController extends Controller
             return back()->with('gagal', 'Campaign ini mewajibkan kehadiran langsung. Pendaftaran dibatalkan.');
         }
 
-        // Rekening wajib diisi saat mendaftar kalau influencer belum punya (catatan wireframe Gambar 83)
+        // Rekening wajib diisi saat mendaftar kalau influencer belum punya (catatan wireframe Gambar 83).
+        // Aturannya sama dengan di Profil: format sesuai penyedia, ketik ulang nomor, dan centang pernyataan.
         $rekeningBaru = null;
 
         if (! $influencer->rekening) {
-            $rekeningBaru = $request->validate(
-                [
-                    'jenisRekening' => ['required', Rule::in(['bank', 'ewallet'])],
-                    'namaPenyedia' => ['required', Rule::in(collect(config('aura.kanalPembayaran'))->flatMap(fn ($daftar) => array_keys($daftar))->all())],
-                    'nomorRekening' => ['required', 'regex:/^[0-9]{5,30}$/'],
-                    'namaPemilik' => ['required', 'string', 'max:100'],
-                ],
-                [
+            $data = $request->validate(
+                RekeningInfluencer::aturanValidasi('required', perluKonfirmasi: true),
+                RekeningInfluencer::pesanValidasi() + [
                     'required' => ':attribute wajib diisi.',
+                    'required_with' => ':attribute wajib diisi.',
                     'in' => 'Pilihan :attribute tidak valid.',
                     'max' => ':attribute maksimal :max karakter.',
-                    'nomorRekening.regex' => 'Nomor Rekening hanya berisi angka, 5 sampai 30 digit.',
                 ],
-                [
-                    'jenisRekening' => 'Jenis Rekening',
-                    'namaPenyedia' => 'Nama Penyedia',
-                    'nomorRekening' => 'Nomor Rekening',
-                    'namaPemilik' => 'Nama Pemilik',
-                ]
+                RekeningInfluencer::namaKolom()
             );
+
+            // Hanya empat kolom rekening yang disimpan (checkbox konfirmasi tidak disimpan)
+            $rekeningBaru = Arr::only($data, ['jenisRekening', 'namaPenyedia', 'nomorRekening', 'namaPemilik']);
         }
 
         DB::transaction(function () use ($influencer, $campaign, $rekeningBaru) {
@@ -108,6 +104,13 @@ class CampaignController extends Controller
                 'statusPendaftaran' => 'menunggu',
             ]);
         });
+
+        // Notifikasi ke Admin: ada pendaftar baru yang perlu dipilih
+        Notifikasi::kirimKeAdmin(
+            'Pendaftar baru campaign',
+            "{$request->user()->nama} mendaftar ke {$campaign->namaCampaign}.",
+            route('admin.campaign.detail', $campaign, false)
+        );
 
         return redirect()->route('influencer.campaign', ['pilih' => $campaign->idCampaign])
             ->with('sukses', 'Pendaftaran berhasil dikirim. Admin akan memilih influencer untuk campaign ini.');

@@ -4,6 +4,7 @@ namespace App\Http\Controllers\Admin;
 
 use App\Http\Controllers\Controller;
 use App\Models\Campaign;
+use App\Models\Notifikasi;
 use App\Models\PendaftaranCampaign;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Support\Str;
@@ -65,6 +66,23 @@ class PendaftarCampaignController extends Controller
 
         if ($jumlahBerubah === 0) {
             return back()->with('gagal', 'Pendaftaran ini sudah diproses sebelumnya.');
+        }
+
+        // Notifikasi ke influencer: hasil pemilihan pendaftar
+        if ($statusBaru === 'diterima') {
+            Notifikasi::kirim(
+                $pendaftaran->idPengguna,
+                'Pendaftaran campaign diterima',
+                "Anda terpilih untuk {$campaign->namaCampaign}. Silakan kirim draft konten sesuai ketentuan campaign.",
+                route('influencer.hasil', ['pilih' => $pendaftaran->idPendaftaran], false)
+            );
+        } else {
+            Notifikasi::kirim(
+                $pendaftaran->idPengguna,
+                'Pendaftaran campaign ditolak',
+                "Anda belum terpilih untuk {$campaign->namaCampaign}. Coba campaign lain yang sesuai.",
+                route('influencer.campaign', [], false)
+            );
         }
 
         $nama = $pendaftaran->influencer->pengguna->nama;

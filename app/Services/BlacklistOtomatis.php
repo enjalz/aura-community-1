@@ -3,6 +3,7 @@
 namespace App\Services;
 
 use App\Models\Influencer;
+use App\Models\Notifikasi;
 use App\Models\PendaftaranCampaign;
 
 // Blacklist otomatis untuk influencer yang diterima di campaign tetapi tidak menyelesaikan
@@ -29,7 +30,7 @@ class BlacklistOtomatis
             $campaign = $pendaftaran->campaign;
 
             // where statusBlacklist = false: kalau satu influencer gagal di dua campaign, cukup tercatat sekali
-            $jumlah += Influencer::whereKey($pendaftaran->idPengguna)
+            $berubah = Influencer::whereKey($pendaftaran->idPengguna)
                 ->where('statusBlacklist', false)
                 ->update([
                     'statusBlacklist' => true,
@@ -38,6 +39,19 @@ class BlacklistOtomatis
                         . $campaign->tanggalSelesai->format('d/m/Y') . '.',
                     'tanggalBlacklist' => today()->toDateString(),
                 ]);
+
+            // Notifikasi hanya untuk influencer yang benar-benar baru masuk blacklist
+            if ($berubah > 0) {
+                Notifikasi::kirim(
+                    $pendaftaran->idPengguna,
+                    'Akun Anda masuk daftar blacklist',
+                    "Anda tidak menyelesaikan pengiriman konten untuk {$campaign->namaCampaign} "
+                        . "hingga campaign berakhir pada {$campaign->tanggalSelesai->format('d/m/Y')}.",
+                    route('influencer.dashboard', [], false)
+                );
+            }
+
+            $jumlah += $berubah;
         }
 
         return $jumlah;

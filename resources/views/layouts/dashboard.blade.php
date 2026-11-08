@@ -4,10 +4,12 @@
 
 {{-- dashboard.css = kerangka (sidebar, topbar).
      konten.css = isi halaman yang dipakai berulang (tabel, paginasi, panel, formulir).
+     notifikasi.css = lonceng dan dropdown notifikasi di topbar.
      @prepend menaruhnya sebelum CSS khusus halaman, supaya halaman masih bisa menimpanya kalau perlu. --}}
 @prepend('styles')
     <link href="{{ asset('css/dashboard.css') }}" rel="stylesheet">
     <link href="{{ asset('css/konten.css') }}" rel="stylesheet">
+    <link href="{{ asset('css/notifikasi.css') }}" rel="stylesheet">
 @endprepend
 
 {{-- konfirmasi.js = dialog konfirmasi untuk form bertanda data-konfirmasi
@@ -56,7 +58,7 @@
                             @endphp
 
                             @if ($bisaDibuka)
-                                <a href="{{ route($item['route']) }}" @class(['menu-item', 'is-active' => $aktif]) @if ($aktif) aria-current="page" @endif>
+                                <a href="{{ route($item['route'], $item['parameter'] ?? []) }}" @class(['menu-item', 'is-active' => $aktif]) @if ($aktif) aria-current="page" @endif>
                                     <i class="bi bi-{{ $item['ikon'] }}" aria-hidden="true"></i>
                                     <span>{{ $item['label'] }}</span>
                                 </a>
@@ -89,12 +91,17 @@
                     <h1 class="topbar-judul">@yield('judul')</h1>
                 </div>
 
-                <div class="pengguna-info">
-                    <div class="pengguna-teks">
-                        <div class="pengguna-nama">{{ $pengguna->nama }}</div>
-                        <div class="pengguna-peran">{{ $labelPeran }}</div>
+                {{-- Kanan: lonceng notifikasi, lalu nama dan peran pengguna --}}
+                <div class="topbar-kanan">
+                    @include('partials.notifikasi')
+
+                    <div class="pengguna-info">
+                        <div class="pengguna-teks">
+                            <div class="pengguna-nama">{{ $pengguna->nama }}</div>
+                            <div class="pengguna-peran">{{ $labelPeran }}</div>
+                        </div>
+                        <div class="avatar" aria-hidden="true">{{ mb_strtoupper(mb_substr($pengguna->nama, 0, 1)) }}</div>
                     </div>
-                    <div class="avatar" aria-hidden="true">{{ mb_strtoupper(mb_substr($pengguna->nama, 0, 1)) }}</div>
                 </div>
             </header>
 

@@ -5,6 +5,7 @@ namespace App\Http\Controllers\Admin;
 use App\Http\Controllers\Controller;
 use App\Http\Requests\Admin\InfluencerRequest;
 use App\Models\Influencer;
+use App\Models\Notifikasi;
 use App\Models\Pengguna;
 use App\Services\BlacklistOtomatis;
 use Illuminate\Http\RedirectResponse;
@@ -179,6 +180,15 @@ class DataInfluencerController extends Controller
             return back()->with('gagal', 'Influencer ini sudah berstatus blacklist.');
         }
 
+        Notifikasi::kirim(
+            $influencer->idPengguna,
+            'Akun Anda masuk daftar blacklist',
+            filled($data['alasanBlacklist'] ?? null)
+                ? 'Alasan: ' . $data['alasanBlacklist']
+                : 'Hubungi Admin Aura Community untuk informasi lebih lanjut.',
+            route('influencer.dashboard', [], false)
+        );
+
         return redirect()->route('admin.influencer.detail', $influencer)
             ->with('sukses', "{$influencer->pengguna->nama} berhasil dimasukkan ke daftar blacklist.");
     }
@@ -199,6 +209,13 @@ class DataInfluencerController extends Controller
         if ($jumlahBerubah === 0) {
             return back()->with('gagal', 'Influencer ini tidak sedang berstatus blacklist.');
         }
+
+        Notifikasi::kirim(
+            $influencer->idPengguna,
+            'Status blacklist dicabut',
+            'Anda dapat kembali mendaftar campaign di Aura Community.',
+            route('influencer.campaign', [], false)
+        );
 
         return redirect()->route('admin.influencer.detail', $influencer)
             ->with('sukses', "Status blacklist {$influencer->pengguna->nama} berhasil dicabut.");

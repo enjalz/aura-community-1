@@ -4,8 +4,10 @@ namespace App\Http\Controllers\Admin;
 
 use App\Http\Controllers\Controller;
 use App\Models\Campaign;
+use App\Models\Notifikasi;
 use App\Models\Pembayaran;
 use App\Models\PendaftaranCampaign;
+use App\Models\RekeningInfluencer;
 use App\Services\XenditPayout;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Http\RedirectResponse;
@@ -69,6 +71,11 @@ class PembayaranController extends Controller
             return back()->with('gagal', 'Pembayaran ini sudah diproses. Gunakan Cek Status untuk melihat hasilnya.');
         }
 
+        // Rekening sebelumnya bermasalah: tunggu influencer menggantinya, supaya tidak gagal lagi ke rekening yang sama
+        if ($pembayaran?->menungguRekeningBaru($rekening)) {
+            return back()->with('gagal', 'Influencer belum memperbarui rekening. Pembayaran dapat diproses ulang setelah rekening diganti.');
+        }
+
         // Baris Pembayaran disimpan dulu (status pending) supaya ada idPembayaran untuk referensi ke Xendit.
         // Kalau sebelumnya gagal, baris yang sama dipakai ulang (idPendaftaran di tabel Pembayaran bersifat UNIQUE).
         $isian = [
@@ -79,6 +86,9 @@ class PembayaranController extends Controller
             'statusPembayaran' => 'pending',
             'idTransaksiGateway' => null,
             'waktuKonfirmasi' => null,
+            // Catatan kegagalan sebelumnya dikosongkan karena pembayaran diproses ulang
+            'kodeGagal' => null,
+            'rekeningGagal' => null,
         ];
 
         if ($pembayaran) {
@@ -95,9 +105,11 @@ class PembayaranController extends Controller
             'waktuKonfirmasi' => $hasil['status'] === 'pending' ? null : now(),
         ]);
 
+        $this->tindakLanjut($pembayaran, $hasil, $rekening, $xendit);
+
         // Tabel 24 alternative scenario: transfer gagal, status tidak diubah menjadi berhasil
         if ($hasil['status'] === 'gagal') {
-            return back()->with('gagal', 'Pembayaran gagal: ' . $hasil['pesan']);
+            return back()->with('gagal', $this->pesanGagal($pembayaran, $hasil));
         }
 
         return redirect()->route('admin.pembayaran')->with('sukses', 'Pembayaran dikirim ke Xendit dan berstatus Pending. Klik Cek Status untuk melihat hasil akhirnya.');
@@ -125,15 +137,72 @@ class PembayaranController extends Controller
                 : null,
         ]);
 
+        $this->tindakLanjut($pembayaran, $hasil, $pembayaran->pendaftaran->influencer->rekening, $xendit);
+
         // Berhasil: kembali ke tabel supaya Admin bisa memproses data berikutnya.
         // Gagal atau masih pending: tetap di detail, supaya Admin bisa proses ulang atau cek lagi.
         return match ($hasil['status']) {
             'berhasil' => redirect()->route('admin.pembayaran')->with('sukses', 'Pembayaran berhasil diterima rekening influencer.'),
-            'gagal' => back()->with('gagal', 'Pembayaran gagal' . ($hasil['pesan'] ? " ({$hasil['pesan']})" : '') . '. Periksa rekening influencer, lalu proses ulang.'),
+            'gagal' => back()->with('gagal', $this->pesanGagal($pembayaran, $hasil)),
             default => back()->with('sukses', 'Pembayaran masih diproses bank. Coba cek lagi beberapa saat lagi.'),
         };
     }
 
+    // Setelah status akhir diketahui: kirim notifikasi ke influencer.
+    // Gagal karena rekening: simpan rekening yang bermasalah dan minta influencer menggantinya.
+    // Gagal karena hal lain (saldo Xendit, koneksi): tidak dikabarkan ke influencer, cukup Admin yang proses ulang.
+    private function tindakLanjut(Pembayaran $pembayaran, array $hasil, ?RekeningInfluencer $rekening, XenditPayout $xendit): void
+    {
+        $pendaftaran = $pembayaran->pendaftaran;
+        $namaCampaign = $pendaftaran->campaign->namaCampaign;
+
+        if ($hasil['status'] === 'berhasil') {
+            Notifikasi::kirim(
+                $pendaftaran->idPengguna,
+                'Pembayaran fee berhasil',
+                "Fee campaign {$namaCampaign} sebesar Rp " . number_format((float) $pembayaran->jumlahPembayaran, 0, ',', '.')
+                    . ' sudah dikirim ke rekening Anda.',
+                route('influencer.riwayat', [], false)
+            );
+
+            return;
+        }
+
+        if ($hasil['status'] !== 'gagal') {
+            return;
+        }
+
+        $kode = $hasil['kode'] ?? null;
+        $masalahRekening = $xendit->masalahRekening($kode);
+
+        $pembayaran->update([
+            'kodeGagal' => $kode !== null ? substr($kode, 0, 50) : null,
+            'rekeningGagal' => $masalahRekening ? Pembayaran::ringkasRekening($rekening) : null,
+        ]);
+
+        if ($masalahRekening) {
+            Notifikasi::kirim(
+                $pendaftaran->idPengguna,
+                'Pembayaran fee gagal, periksa rekening Anda',
+                "Fee campaign {$namaCampaign} tidak dapat dikirim. " . $xendit->alasanRekening($kode)
+                    . ' Harap cek ulang dan perbarui data rekening di Profil supaya pembayaran dapat diproses ulang.',
+                route('influencer.profil', [], false) . '#rekening'
+            );
+        }
+    }
+
+        private function pesanGagal(Pembayaran $pembayaran, array $hasil): string
+    {
+        // Kode dari Xendit diterjemahkan lewat config aura.penyebabGagal, contoh INVALID_DESTINATION => "Rekening tidak valid"
+        $kode = $hasil['kode'] ?? null;
+        $penyebab = $kode ? config("aura.penyebabGagal.{$kode}", 'Transfer gagal diproses') : $hasil['pesan'];
+
+        $teks = 'Pembayaran gagal' . ($penyebab ? ": {$penyebab}" : '') . '.';
+
+        return $pembayaran->rekeningGagal !== null
+            ? $teks . ' Notifikasi sudah dikirim ke influencer untuk memperbarui rekening.'
+            : $teks . ' Periksa kendalanya, lalu proses ulang.';
+    }
     // Pendaftaran yang tampil: diterima, dan sudah punya data pembayaran atau sudah siap dibayar
     private function queryDaftar(): Builder
     {
@@ -149,7 +218,7 @@ class PembayaranController extends Controller
 
     // Catatan Class Diagram: "Pembayaran dilakukan jika seluruh HasilPengerjaan disetujui".
     // Artinya: ada hasil untuk setiap platform di ketentuan, dan tidak ada insight yang belum disetujui.
-    private function syaratSiapDibayar(Builder $query): Builder
+    public static function syaratSiapDibayar(Builder $query): Builder
     {
         return $query
             ->whereHas('hasilPengerjaan')

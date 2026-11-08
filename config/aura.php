@@ -11,6 +11,9 @@ return [
         'tiktok' => 'TikTok',
     ],
 
+    // Syarat bergabung: setiap akun media sosial yang didaftarkan minimal punya pengikut sebanyak ini
+    'minimalPengikut' => 1000,
+
     // Jenis konten di ketentuan platform (Tabel 34)
     'jenisKonten' => [
         'video' => 'Video',
@@ -66,6 +69,17 @@ return [
         'gagal' => 'Gagal',
     ],
 
+    // Penyebab pembayaran gagal: kode dari Xendit => keterangan untuk Admin.
+    // Kode yang tidak ada di daftar ini ditampilkan sebagai "Transfer gagal diproses".
+    'penyebabGagal' => [
+        'INVALID_DESTINATION' => 'Rekening tidak valid',
+        'REJECTED_BY_CHANNEL' => 'Ditolak oleh bank/e-wallet tujuan',
+        'DESTINATION_MAXIMUM_LIMIT' => 'Saldo e-wallet tujuan sudah penuh',
+        'PENYEDIA_TIDAK_DIDUKUNG' => 'Bank/e-wallet belum didukung',
+        'INSUFFICIENT_BALANCE' => 'Saldo Xendit tidak cukup',
+        'TEMPORARY_TRANSFER_ERROR' => 'Gangguan sementara di bank tujuan',
+    ],
+
     // Penyedia rekening yang bisa dipilih influencer => kode kanal Xendit Payouts.
     // ID_BCA terkonfirmasi dari contoh dokumentasi Xendit. Kode lain mengikuti pola yang sama;
     // kalau Xendit membalas CHANNEL_CODE_NOT_SUPPORTED, sesuaikan dengan daftar kanal di dashboard Xendit.
@@ -86,6 +100,22 @@ return [
             'LinkAja' => 'ID_LINKAJA',
         ],
     ],
+
+    // Panjang nomor rekening bank yang umum dipakai: nama penyedia => [minimal, maksimal] digit.
+    // Dipakai untuk mencegah salah ketik. Kalau ada nomor asli yang ditolak, sesuaikan angkanya di sini.
+    // E-wallet tidak diatur di sini karena nomornya adalah nomor HP (diawali 08, 10 sampai 13 digit).
+    'panjangRekening' => [
+        'BCA' => [10, 10],
+        'BRI' => [15, 15],
+        'BNI' => [10, 10],
+        'Mandiri' => [13, 13],
+        'Permata' => [10, 16],
+        'CIMB Niaga' => [12, 14],
+    ],
+
+    // Nomor simulasi Xendit mode Test (lihat README). Tetap diizinkan walaupun panjangnya tidak sesuai,
+    // tetapi hanya selama XENDIT_SECRET_KEY masih kunci Test (diawali xnd_development_).
+    'nomorSimulasiXendit' => ['121212', '999999'],
 
     'statusLaporan' => [
         'belum' => 'Belum Dibuat',

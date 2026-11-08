@@ -4,6 +4,7 @@ namespace App\Http\Controllers\Admin;
 
 use App\Http\Controllers\Controller;
 use App\Models\Campaign;
+use App\Models\Notifikasi;
 use App\Models\OwnerBrand;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
@@ -31,10 +32,23 @@ class AksesCampaignController extends Controller
             'ownerBrand.*' => ['integer', Rule::exists('OwnerBrand', 'idPengguna')],
         ]);
 
+        // Dicatat sebelum disimpan, supaya hanya Owner Brand yang BARU diberi akses yang dinotifikasi
+        $aksesLama = $campaign->ownerBrand()->pluck('OwnerBrand.idPengguna')->all();
+
         // Sama seperti sync(), tetapi idAdmin ikut tersimpan di tabel AksesCampaign
         $campaign->ownerBrand()->syncWithPivotValues(
             $data['ownerBrand'] ?? [],
             ['idAdmin' => $request->user()->idPengguna]
+        );
+
+        // Notifikasi ke Owner Brand yang baru diberi akses
+        $penerimaBaru = array_values(array_diff(array_map('intval', $data['ownerBrand'] ?? []), $aksesLama));
+
+        Notifikasi::kirim(
+            $penerimaBaru,
+            'Akses campaign baru',
+            "Anda diberi akses untuk memantau {$campaign->namaCampaign}.",
+            route('owner.campaign', [], false)
         );
 
         // Tabel 15 alternative scenario: tidak memilih Owner Brand = tidak ada akses

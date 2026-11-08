@@ -1,4 +1,3 @@
-{{-- Wireframe Gambar 66 --}}
 @extends('layouts.auth')
 
 @section('title', 'Registrasi Influencer - Aura Community')
@@ -8,6 +7,12 @@
 @endsection
 
 @section('isi')
+    @php
+        // Syarat minimal pengikut dari config/aura.php, contoh tampilan: 1.000
+        $minimalPengikut = (int) config('aura.minimalPengikut');
+        $minimalTampil = number_format($minimalPengikut, 0, ',', '.');
+    @endphp
+
     <div class="auth-card auth-card-lebar">
         <div class="auth-head">
             <h1>Registrasi Influencer</h1>
@@ -64,7 +69,10 @@
 
             <hr class="garis">
             <p class="label-kelompok">Akun Media Sosial</p>
-            <p class="teks-bantuan">Isi minimal satu akun, lengkap dengan demografi audiens dan screenshot insight-nya.</p>
+            <p class="teks-bantuan">
+                Isi minimal satu akun, lengkap dengan demografi audiens dan screenshot insight-nya.
+                Setiap akun yang didaftarkan minimal memiliki <strong>{{ $minimalTampil }} pengikut</strong>.
+            </p>
 
             @error('sosmed')
                 <div class="alert-aura alert-gagal" role="alert">{{ $message }}</div>
@@ -77,7 +85,9 @@
                         <x-input :name="$kunci . '_username'" label="Username" placeholder="username" />
                     </div>
                     <div class="col-md-6">
-                        <x-input :name="$kunci . '_pengikut'" label="Jumlah Pengikut" type="number" placeholder="0" min="0" />
+                        <x-input :name="$kunci . '_pengikut'" label="Jumlah Pengikut" type="number"
+                                 :placeholder="'Minimal ' . $minimalTampil" :min="$minimalPengikut" />
+                        <p class="teks-bantuan mb-0">Minimal {{ $minimalTampil }} pengikut.</p>
                     </div>
                     <div class="col-12">
                         <x-input :name="$kunci . '_link'" label="Link Profil" type="url" :placeholder="'Tautan profil ' . $nama" />

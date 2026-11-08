@@ -62,7 +62,15 @@
                             <td><x-rupiah :nilai="$pembayaran?->jumlahPembayaran ?? $pendaftaran->campaign->feePerInfluencer" /></td>
                             <td>{{ $pembayaran?->tanggalPembayaran->format('d/m/Y') ?? '-' }}</td>
                             <td><span class="teks-kode">{{ $pembayaran?->idTransaksiGateway ?? '-' }}</span></td>
-                            <td><x-status jenis="statusPembayaran" :nilai="$pembayaran?->statusPembayaran ?? 'belum'" /></td>
+                            <td>
+                                <x-status jenis="statusPembayaran" :nilai="$pembayaran?->statusPembayaran ?? 'belum'" />
+                                {{-- Gagal karena rekening: tampilkan apakah influencer sudah mengganti rekening --}}
+                                @if ($pembayaran?->statusPembayaran === 'gagal' && $pembayaran->rekeningGagal)
+                                    <div class="teks-bantuan mt-1">
+                                        {{ $pembayaran->menungguRekeningBaru($pendaftaran->influencer->rekening) ? 'Menunggu rekening baru' : 'Rekening sudah diperbarui' }}
+                                    </div>
+                                @endif
+                            </td>
                             <td class="kolom-aksi">
                                 <x-aksi ikon="eye" label="Lihat Pembayaran" :href="request()->fullUrlWithQuery(['pilih' => $pendaftaran->idPendaftaran])" />
                             </td>
@@ -82,6 +90,10 @@
             $pembayaran = $terpilih->pembayaran;
             $rekening = $terpilih->influencer->rekening;
             $status = $pembayaran?->statusPembayaran ?? 'belum';
+            // Gagal karena rekening dan influencer belum mengganti rekening: tombol bayar dikunci
+            $menungguRekening = $pembayaran?->menungguRekeningBaru($rekening) ?? false;
+            // Gagal karena rekening dan influencer sudah mengganti rekening: siap dibayar ulang
+            $rekeningDiganti = $status === 'gagal' && $pembayaran->rekeningGagal !== null && ! $menungguRekening;
         @endphp
 
         <section>
@@ -105,6 +117,9 @@
                         @if ($pembayaran?->waktuKonfirmasi)
                             <div><dt>Waktu Konfirmasi</dt><dd>{{ $pembayaran->waktuKonfirmasi->format('d/m/Y H:i') }}</dd></div>
                         @endif
+                        @if ($status === 'gagal' && $pembayaran->kodeGagal)
+                            <div><dt>Penyebab Gagal</dt><dd>{{ config('aura.penyebabGagal.' . $pembayaran->kodeGagal, 'Transfer gagal diproses') }}</dd></div>
+                        @endif
                     </dl>
                 </div>
 
@@ -123,6 +138,17 @@
                     @else
                         <div class="catatan">Influencer belum mengisi data rekening.</div>
                     @endif
+
+                    @if ($menungguRekening)
+                        <div class="alert-aura alert-gagal mt-3" role="alert">
+                            Rekening ini gagal menerima transfer. Influencer sudah diberi notifikasi untuk memperbarui rekening.
+                        </div>
+                    @elseif ($rekeningDiganti)
+                        <div class="catatan mt-3">
+                            <i class="bi bi-check-circle" aria-hidden="true"></i>
+                            Influencer sudah memperbarui rekening. Rekening sebelumnya: {{ $pembayaran->rekeningGagal }}
+                        </div>
+                    @endif
                 </div>
 
                 <div class="garis-tegak" aria-hidden="true"></div>
@@ -134,15 +160,20 @@
                     </div>
 
                     @if (in_array($status, ['belum', 'gagal'], true))
-                        {{-- Tabel 24 langkah 3-4: Admin memeriksa lalu memproses --}}
-                        <form method="POST" action="{{ route('admin.pembayaran.proses', $terpilih) }}"
-                              data-konfirmasi="Kirim fee ke rekening {{ $terpilih->influencer->pengguna->nama }} melalui Xendit?">
-                            @csrf
-                            <button type="submit" class="btn-aura btn-aura-primary w-100" @disabled(! $rekening)>
-                                {{ $status === 'gagal' ? 'Proses Ulang Pembayaran' : 'Proses Pembayaran' }}
-                            </button>
-                        </form>
-                        <p class="teks-bantuan">Dana dikirim melalui Xendit (mode Test).</p>
+                        @if ($menungguRekening)
+                            <button type="button" class="btn-aura btn-aura-primary w-100" disabled>Menunggu Rekening Baru</button>
+                            <p class="teks-bantuan">Mohon tunggu setelah influencer memperbarui rekening.</p>
+                        @else
+                            {{-- Tabel 24 langkah 3-4: Admin memeriksa lalu memproses --}}
+                            <form method="POST" action="{{ route('admin.pembayaran.proses', $terpilih) }}"
+                                  data-konfirmasi="{{ $rekeningDiganti ? 'Kirim ulang fee ke rekening baru' : 'Kirim fee ke rekening' }} {{ $terpilih->influencer->pengguna->nama }} melalui Xendit?">
+                                @csrf
+                                <button type="submit" class="btn-aura btn-aura-primary w-100" @disabled(! $rekening)>
+                                    {{ $status === 'gagal' ? 'Proses Ulang Pembayaran' : 'Proses Pembayaran' }}
+                                </button>
+                            </form>
+                            <p class="teks-bantuan">Dana dikirim melalui Xendit (mode Test).</p>
+                        @endif
                     @elseif ($status === 'pending')
                         <form method="POST" action="{{ route('admin.pembayaran.cek-status', $pembayaran) }}">
                             @csrf

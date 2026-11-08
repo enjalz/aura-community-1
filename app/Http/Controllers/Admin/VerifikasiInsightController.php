@@ -3,15 +3,15 @@
 namespace App\Http\Controllers\Admin;
 
 use App\Http\Controllers\Controller;
+use App\Models\AkunSosmed;
 use App\Models\Campaign;
 use App\Models\Feedback;
 use App\Models\HasilPengerjaan;
-use App\Models\AkunSosmed;
+use App\Models\Notifikasi;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Illuminate\View\View;
-
 
 // Use case Memeriksa Insight Campaign (Tabel 23). Wireframe Gambar 74.
 class VerifikasiInsightController extends Controller
@@ -75,6 +75,28 @@ class VerifikasiInsightController extends Controller
             return back()->with('gagal', 'Insight ini sudah diperiksa sebelumnya.');
         }
 
+        // Notifikasi ke influencer: insight disetujui
+        $pendaftaran = $hasil->pendaftaran;
+
+        Notifikasi::kirim(
+            $pendaftaran->idPengguna,
+            'Insight disetujui',
+            "Insight {$pendaftaran->campaign->namaCampaign} ({$hasil->akunSosmed->platform}) disetujui. "
+                . 'Fee dibayarkan setelah semua insight campaign ini disetujui.',
+            Notifikasi::tautanHasil($hasil)
+        );
+
+        // Semua platform sudah disetujui: ingatkan Admin untuk memproses pembayaran
+        $jumlahPlatform = $pendaftaran->campaign->ketentuanPlatform->pluck('platform')->unique()->count();
+
+        if ($pendaftaran->hasilPengerjaan()->where('statusInsight', 'disetujui')->count() >= $jumlahPlatform) {
+            Notifikasi::kirimKeAdmin(
+                'Pembayaran siap diproses',
+                "Semua insight {$pendaftaran->influencer->pengguna->nama} untuk {$pendaftaran->campaign->namaCampaign} sudah disetujui.",
+                route('admin.pembayaran', ['pilih' => $pendaftaran->idPendaftaran], false)
+            );
+        }
+
         return back()->with('sukses', 'Insight disetujui dan jumlah pengikut di profil influencer diperbarui. Pengerjaan ini siap diproses ke pembayaran.');
     }
 
@@ -112,6 +134,14 @@ class VerifikasiInsightController extends Controller
         if (! $berhasil) {
             return back()->with('gagal', 'Insight ini sudah diperiksa sebelumnya.');
         }
+
+        // Notifikasi ke influencer: insight ditolak beserta alasannya
+        Notifikasi::kirim(
+            $hasil->pendaftaran->idPengguna,
+            'Insight ditolak',
+            "{$hasil->pendaftaran->campaign->namaCampaign} ({$hasil->akunSosmed->platform}): {$data['alasan']} Perbaiki lalu kirim ulang insight.",
+            Notifikasi::tautanHasil($hasil)
+        );
 
         return back()->with('sukses', 'Insight ditolak. Influencer dapat melihat alasannya dan mengirim ulang.');
     }

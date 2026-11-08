@@ -2,6 +2,7 @@
 
 namespace App\Models;
 
+use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Database\Eloquent\Relations\HasOne;
 use Illuminate\Foundation\Auth\User as Authenticatable;
 
@@ -41,6 +42,12 @@ class Pengguna extends Authenticatable
         return $this->hasOne(Influencer::class, 'idPengguna');
     }
 
+    // Satu pengguna memiliki banyak notifikasi (semua peran)
+    public function notifikasi(): HasMany
+    {
+        return $this->hasMany(Notifikasi::class, 'idPengguna');
+    }
+
     // Peran dibaca dari tabel turunan tempat data pengguna berada (generalisasi)
     public function peran(): ?string
     {
@@ -54,7 +61,7 @@ class Pengguna extends Authenticatable
         return $this->peranTersimpan ?: null;
     }
 
-        // Memperbarui data profil (Tabel 7). Dipakai oleh profil Admin, Owner Brand, dan Influencer.
+    // Memperbarui data profil (Tabel 7). Dipakai oleh profil Admin, Owner Brand, dan Influencer.
     // Password hanya diganti kalau kolom password baru diisi.
     public function perbaruiProfil(array $data): void
     {
