@@ -21,6 +21,20 @@ return [
         'story' => 'Story',
     ],
 
+    // Pilihan Lokasi Audiens (Negara) di form demografi.
+    // Nilai disimpan apa adanya di kolom AkunSosmed.domisiliAudiens.
+    'negaraAudiens' => [
+        'Indonesia',
+        'Malaysia',
+        'Singapura',
+        'Thailand',
+        'Filipina',
+        'Vietnam',
+        'Brunei Darussalam',
+        'Amerika Serikat',
+        'Lainnya',
+    ],
+
     // Status campaign (Tabel 33)
     'statusCampaign' => [
         'draft' => 'Draft',

@@ -9,7 +9,18 @@
 </div>
 
 <div class="col-md-4">
-    <x-input :name="$kunci . '_domisili'" label="Lokasi Audiens (Negara)" :value="$akun?->domisiliAudiens" placeholder="Contoh: Indonesia" />
+    <div class="field">
+        <label for="{{ $kunci }}_domisili" class="field-label">Lokasi Audiens</label>
+        <select id="{{ $kunci }}_domisili" name="{{ $kunci }}_domisili" @class(['input-aura', 'is-invalid' => $errors->has($kunci . '_domisili')])>
+            <option value="" @selected(! old($kunci . '_domisili', $akun?->domisiliAudiens))>Pilih negara</option>
+            @foreach (config('aura.negaraAudiens') as $negara)
+                <option value="{{ $negara }}" @selected(old($kunci . '_domisili', $akun?->domisiliAudiens) === $negara)>{{ $negara }}</option>
+            @endforeach
+        </select>
+        @error($kunci . '_domisili')
+            <p class="pesan-error">{{ $message }}</p>
+        @enderror
+    </div>
 </div>
 
 <div class="col-md-4">

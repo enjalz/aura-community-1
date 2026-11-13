@@ -146,7 +146,9 @@ class AkunSosmed extends ModelAura
         $wajib = fn (bool $ya) => $ya ? ["required_with:{$kunci}_username"] : [];
 
         return [
-            "{$kunci}_domisili" => ['nullable', 'string', 'max:100', ...$wajib($wajibIsian)],
+            // Lokasi audiens dipilih dari daftar negara supaya isiannya seragam
+            // dan bisa dicocokkan dengan target campaign (PendaftaranCampaign::hitungKecocokan)
+            "{$kunci}_domisili" => ['nullable', Rule::in(config('aura.negaraAudiens')), ...$wajib($wajibIsian)],
             "{$kunci}_usia" => ['nullable', Rule::in(array_keys(config('aura.rentangUsia'))), ...$wajib($wajibIsian)],
             "{$kunci}_gender" => ['nullable', Rule::in(array_keys(config('aura.genderAudiens'))), ...$wajib($wajibIsian)],
             "{$kunci}_demografi" => [
